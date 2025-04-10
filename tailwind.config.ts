@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -52,16 +53,31 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
-				}
+				// Green Market custom colors
+				green: {
+					50: '#f0f9f0',
+					100: '#dcefdc',
+					200: '#bcdcbc',
+					300: '#92c292',
+					400: '#67a567',
+					500: '#4a8c4a',
+					600: '#3a703a',
+					700: '#2F5233',
+					800: '#243024',
+					900: '#1a231a',
+				},
+				earth: {
+					50: '#f9f7f4',
+					100: '#f0ebe3',
+					200: '#e2d5c3',
+					300: '#d0b99e',
+					400: '#b99b78',
+					500: '#a5835e',
+					600: '#8B7355',
+					700: '#6d5a43',
+					800: '#574839',
+					900: '#403528',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
