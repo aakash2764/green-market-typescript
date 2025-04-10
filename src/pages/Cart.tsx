@@ -6,30 +6,99 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { 
   Card, 
-  CardContent 
+  CardContent,
+  CardHeader,
+  CardTitle 
 } from "@/components/ui/card";
 import { 
   Trash2, 
   ShoppingBag, 
   Plus, 
   Minus,
-  ChevronRight,
-  CreditCard
+  CreditCard,
+  QrCode,
+  Home,
+  Check
 } from "lucide-react";
-import { products } from "@/data/products"; // Added missing import
+import { products } from "@/data/products";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 export default function Cart() {
   const { cartItems, removeFromCart, updateQuantity, clearCart, cartTotal } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [showQRCode, setShowQRCode] = useState(false);
+  const [showCardForm, setShowCardForm] = useState(false);
+  
+  const handlePaymentMethodChange = (value: string) => {
+    setPaymentMethod(value);
+  };
   
   const handleCheckout = () => {
+    // Validate payment method
+    if (!paymentMethod) {
+      toast({
+        title: "Please select a payment method",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsProcessing(true);
-    // This would connect to a backend in a real app
+    
+    // Process based on payment method
+    if (paymentMethod === "upi") {
+      setShowQRCode(true);
+      setIsProcessing(false);
+    } else if (paymentMethod === "card") {
+      setShowCardForm(true);
+      setIsProcessing(false);
+    } else {
+      // COD or other methods
+      // This would connect to a backend in a real app
+      setTimeout(() => {
+        setIsProcessing(false);
+        toast({
+          title: "Order Placed Successfully!",
+          description: "Your order will be delivered soon.",
+        });
+        clearCart();
+        // Navigate to order confirmation in a real app
+      }, 1500);
+    }
+  };
+
+  const submitCardPayment = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowCardForm(false);
+    setIsProcessing(true);
+    
     setTimeout(() => {
       setIsProcessing(false);
+      toast({
+        title: "Payment Successful!",
+        description: "Your order will be delivered soon.",
+      });
       clearCart();
-      // Navigate to order confirmation in a real app
-    }, 2000);
+    }, 1500);
+  };
+
+  const confirmUpiPayment = () => {
+    setShowQRCode(false);
+    setIsProcessing(true);
+    
+    setTimeout(() => {
+      setIsProcessing(false);
+      toast({
+        title: "UPI Payment Confirmed!",
+        description: "Your order will be delivered soon.",
+      });
+      clearCart();
+    }, 1500);
   };
   
   if (cartItems.length === 0) {
@@ -147,6 +216,40 @@ export default function Cart() {
                 <span>₹{cartTotal.toFixed(2)}</span>
               </div>
               
+              <div className="mb-6">
+                <h3 className="text-sm font-medium mb-3">Payment Method</h3>
+                <RadioGroup 
+                  defaultValue="cod" 
+                  value={paymentMethod}
+                  onValueChange={handlePaymentMethodChange}
+                  className="gap-3"
+                >
+                  <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-muted/50 transition-colors">
+                    <RadioGroupItem value="cod" id="cod" />
+                    <Label htmlFor="cod" className="flex items-center gap-2 cursor-pointer">
+                      <Home className="h-4 w-4" />
+                      Pay on Delivery (Cash/UPI)
+                    </Label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-muted/50 transition-colors">
+                    <RadioGroupItem value="upi" id="upi" />
+                    <Label htmlFor="upi" className="flex items-center gap-2 cursor-pointer">
+                      <QrCode className="h-4 w-4" />
+                      UPI / QR Code
+                    </Label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 border rounded-md p-3 hover:bg-muted/50 transition-colors">
+                    <RadioGroupItem value="card" id="card" />
+                    <Label htmlFor="card" className="flex items-center gap-2 cursor-pointer">
+                      <CreditCard className="h-4 w-4" />
+                      Credit / Debit Card
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              
               <Button 
                 onClick={handleCheckout}
                 disabled={isProcessing}
@@ -156,8 +259,14 @@ export default function Cart() {
                   "Processing..."
                 ) : (
                   <>
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Checkout
+                    {paymentMethod === "card" ? (
+                      <CreditCard className="mr-2 h-4 w-4" />
+                    ) : paymentMethod === "upi" ? (
+                      <QrCode className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Home className="mr-2 h-4 w-4" />
+                    )}
+                    Place Order
                   </>
                 )}
               </Button>
@@ -169,6 +278,61 @@ export default function Cart() {
           </Card>
         </div>
       </div>
+      
+      {/* UPI QR Code Dialog */}
+      <Dialog open={showQRCode} onOpenChange={setShowQRCode}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Scan QR Code to Pay</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center space-y-4">
+            <div className="bg-white p-4 rounded-lg">
+              <QrCode className="h-48 w-48" />
+            </div>
+            <p className="text-center">
+              Scan this QR code with any UPI app to pay ₹{cartTotal.toFixed(2)}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              UPI ID: greenmarket@ybl
+            </p>
+            <Button onClick={confirmUpiPayment} className="w-full">
+              <Check className="mr-2 h-4 w-4" /> I've Completed the Payment
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Card Payment Dialog */}
+      <Dialog open={showCardForm} onOpenChange={setShowCardForm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Card Payment</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={submitCardPayment} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="cardNumber">Card Number</Label>
+              <Input id="cardNumber" placeholder="1234 5678 9012 3456" required maxLength={19} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="expiry">Expiry Date</Label>
+                <Input id="expiry" placeholder="MM/YY" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cvv">CVV</Label>
+                <Input id="cvv" placeholder="123" required maxLength={3} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="name">Cardholder Name</Label>
+              <Input id="name" placeholder="John Doe" required />
+            </div>
+            <Button type="submit" className="w-full">
+              Pay ₹{cartTotal.toFixed(2)}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
   
