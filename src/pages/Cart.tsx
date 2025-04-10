@@ -16,6 +16,7 @@ import {
   ChevronRight,
   CreditCard
 } from "lucide-react";
+import { products } from "@/data/products"; // Added missing import
 
 export default function Cart() {
   const { cartItems, removeFromCart, updateQuantity, clearCart, cartTotal } = useCart();
