@@ -77,7 +77,7 @@ export default function Cart() {
                           <span className="sr-only">Remove</span>
                         </button>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">${item.price.toFixed(2)}</p>
+                      <p className="text-sm text-muted-foreground mb-2">₹{item.price.toFixed(2)}</p>
                       <div className="flex justify-between items-center mt-auto">
                         <div className="flex items-center border border-border rounded-md">
                           <button
@@ -91,13 +91,14 @@ export default function Cart() {
                           <span className="w-8 text-center">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="px-2 py-1 text-muted-foreground hover:text-foreground"
+                            disabled={item.quantity >= getItemStock(item.id)}
+                            className="px-2 py-1 text-muted-foreground hover:text-foreground disabled:opacity-50"
                           >
                             <Plus className="h-4 w-4" />
                             <span className="sr-only">Increase</span>
                           </button>
                         </div>
-                        <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="font-medium">₹{(item.price * item.quantity).toFixed(2)}</p>
                       </div>
                     </div>
                   </div>
@@ -130,7 +131,7 @@ export default function Cart() {
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>${cartTotal.toFixed(2)}</span>
+                  <span>₹{cartTotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
@@ -142,7 +143,7 @@ export default function Cart() {
               
               <div className="flex justify-between font-bold mb-6">
                 <span>Total</span>
-                <span>${cartTotal.toFixed(2)}</span>
+                <span>₹{cartTotal.toFixed(2)}</span>
               </div>
               
               <Button 
@@ -169,4 +170,13 @@ export default function Cart() {
       </div>
     </div>
   );
+  
+  // Helper function to get current stock for an item
+  function getItemStock(productId: number) {
+    const product = cartItems.find(item => item.id === productId);
+    if (!product) return 0;
+    
+    const currentProduct = products.find(p => p.id === productId);
+    return currentProduct?.stock || 0;
+  }
 }

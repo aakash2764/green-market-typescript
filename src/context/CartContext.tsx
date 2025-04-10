@@ -2,14 +2,23 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Product } from "@/data/products";
 import { toast } from "@/components/ui/use-toast";
+import { products } from "@/data/products";
 
-interface CartItem extends Product {
+interface CartItem {
+  id: number;
+  name: string;
+  price: number;
+  description: string;
+  image: string;
+  category: string;
   quantity: number;
+  featured?: boolean;
+  stock: number;
 }
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: Product) => void;
+  addToCart: (product: Product | (Product & { quantity: number })) => void;
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
@@ -29,19 +38,48 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("greenmarket-cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product | (Product & { quantity: number })) => {
+    // Get current product stock
+    const currentProduct = products.find(p => p.id === product.id);
+    const currentStock = currentProduct?.stock || 0;
+    
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
       
       if (existingItem) {
+        // Check if adding more would exceed stock
+        const newQuantity = 'quantity' in product 
+          ? existingItem.quantity + product.quantity
+          : existingItem.quantity + 1;
+          
+        if (newQuantity > currentStock) {
+          toast({
+            title: "Cannot add more",
+            description: `Only ${currentStock} in stock`,
+            variant: "destructive"
+          });
+          return prevItems;
+        }
+        
         toast({
-          title: "Item already in cart",
-          description: "Increased quantity by 1",
+          title: "Updated cart",
+          description: `${product.name} quantity updated`,
         });
         
         return prevItems.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id ? { ...item, quantity: newQuantity } : item
         );
+      }
+      
+      // Check if adding new item would exceed stock
+      const quantityToAdd = 'quantity' in product ? product.quantity : 1;
+      if (quantityToAdd > currentStock) {
+        toast({
+          title: "Cannot add to cart",
+          description: `Only ${currentStock} in stock`,
+          variant: "destructive"
+        });
+        return prevItems;
       }
       
       toast({
@@ -49,7 +87,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         description: product.name,
       });
       
-      return [...prevItems, { ...product, quantity: 1 }];
+      return [...prevItems, { 
+        ...product, 
+        quantity: 'quantity' in product ? product.quantity : 1 
+      }];
     });
   };
 
@@ -68,6 +109,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const updateQuantity = (productId: number, quantity: number) => {
     if (quantity < 1) return;
+    
+    // Get current product stock
+    const currentProduct = products.find(p => p.id === productId);
+    if (!currentProduct) return;
+    
+    // Make sure quantity doesn't exceed stock
+    if (quantity > currentProduct.stock) {
+      toast({
+        title: "Cannot add more",
+        description: `Only ${currentProduct.stock} in stock`,
+        variant: "destructive"
+      });
+      return;
+    }
     
     setCartItems((prevItems) =>
       prevItems.map((item) =>

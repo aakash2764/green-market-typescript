@@ -63,10 +63,9 @@ export default function ProductDetail() {
   };
   
   const handleAddToCart = () => {
-    if (!isOutOfStock) {
-      for (let i = 0; i < quantity; i++) {
-        addToCart(product);
-      }
+    if (!isOutOfStock && quantity <= product.stock) {
+      // Add to cart the selected quantity at once
+      addToCart({...product, quantity});
     }
   };
   
@@ -101,7 +100,7 @@ export default function ProductDetail() {
         
         <div>
           <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-          <p className="text-2xl font-bold mb-4">${product.price.toFixed(2)}</p>
+          <p className="text-2xl font-bold mb-4">₹{product.price.toFixed(2)}</p>
           
           {/* Stock Status */}
           <div className="mb-4">

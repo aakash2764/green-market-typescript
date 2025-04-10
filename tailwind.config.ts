@@ -53,18 +53,18 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				// Green Market custom colors - updated shades
+				// Green Market custom colors - improved shades
 				green: {
-					50: '#f1f8f5',
-					100: '#dceee3',
-					200: '#bcdac9',
-					300: '#90c0a8',
-					400: '#62a284',
-					500: '#3e8768',
-					600: '#326d54',
-					700: '#2a5745',
-					800: '#234236',
-					900: '#1d322b',
+					50: '#ebf5f0',
+					100: '#d7ebdc',
+					200: '#b0d7c3',
+					300: '#7fc0a0',
+					400: '#56a47c',
+					500: '#388a61',
+					600: '#2c7050',
+					700: '#235c42',
+					800: '#1c473c',
+					900: '#173730',
 				},
 				earth: {
 					50: '#f9f7f4',
