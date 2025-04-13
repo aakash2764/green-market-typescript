@@ -2,12 +2,22 @@
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { Toaster } from "@/components/ui/toaster";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  // Add smooth scroll behavior and improved animations
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  // Check authentication status on mount and when localStorage changes
   useEffect(() => {
-    // Add smooth scroll behavior to html element
+    const checkAuth = () => {
+      const loggedIn = localStorage.getItem("isLoggedIn") === "true";
+      setIsLoggedIn(loggedIn);
+    };
+    
+    // Check auth on mount
+    checkAuth();
+    
+    // Add smooth scroll behavior and improved animations
     document.documentElement.style.scrollBehavior = 'smooth';
     
     // Add fade-in animation to main content
@@ -34,15 +44,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
       observer.observe(section);
     });
     
+    // Set up storage event listener to detect login/logout across tabs
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'isLoggedIn') {
+        checkAuth();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
     return () => {
       observer.disconnect();
       document.documentElement.style.scrollBehavior = '';
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Navbar />
+      <Navbar isLoggedIn={isLoggedIn} />
       <main className="flex-grow">{children}</main>
       <Footer />
       <Toaster />
