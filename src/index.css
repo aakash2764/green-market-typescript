@@ -93,4 +93,48 @@
   .product-card {
     @apply bg-card rounded-lg overflow-hidden border border-border shadow-sm hover:shadow-md transition-all duration-200;
   }
+  
+  /* New gradient classes */
+  .gradient-primary {
+    @apply bg-gradient-to-r from-green-400 to-green-600;
+  }
+  
+  .gradient-secondary {
+    @apply bg-gradient-to-r from-earth-400 to-earth-600;
+  }
+  
+  .gradient-card {
+    @apply bg-gradient-to-br from-white to-muted dark:from-card dark:to-muted;
+  }
+  
+  .gradient-hero {
+    @apply bg-gradient-to-r from-green-900/80 via-green-800/80 to-earth-900/80;
+  }
+  
+  .gradient-testimonial {
+    @apply bg-gradient-to-br from-green-50 to-earth-50 dark:from-green-900/20 dark:to-earth-900/20;
+  }
+  
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-earth-500 dark:from-green-400 dark:to-earth-300;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }

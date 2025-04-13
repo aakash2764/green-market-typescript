@@ -27,23 +27,29 @@ const testimonials = [
 
 export function TestimonialSection() {
   return (
-    <section className="py-16">
+    <section className="py-16 gradient-testimonial">
       <div className="container-custom">
-        <h2 className="text-3xl font-bold mb-4 text-center">What Our Customers Say</h2>
+        <h2 className="text-3xl font-bold mb-4 text-center text-gradient">What Our Customers Say</h2>
         <p className="text-muted-foreground mb-12 text-center max-w-3xl mx-auto">
           Join thousands of customers who are making the switch to sustainable living with our eco-friendly products.
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {testimonials.map((testimonial) => (
-            <Card key={testimonial.id} className="border-border">
+          {testimonials.map((testimonial, index) => (
+            <Card 
+              key={testimonial.id} 
+              className="border-border gradient-card hover-lift animate-fade-in"
+              style={{ animationDelay: `${index * 150}ms` }}
+            >
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center text-center">
-                  <img
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    className="w-16 h-16 rounded-full mb-4 border-2 border-primary"
-                  />
+                  <div className="p-1 rounded-full bg-gradient-to-r from-green-400 to-earth-400 mb-4">
+                    <img
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      className="w-16 h-16 rounded-full border-2 border-white"
+                    />
+                  </div>
                   <p className="text-foreground mb-4 italic">"{testimonial.content}"</p>
                   <div>
                     <h4 className="font-medium">{testimonial.name}</h4>
