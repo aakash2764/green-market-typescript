@@ -16,10 +16,10 @@ export function HeroSection() {
       
       <div className="container-custom relative z-10 py-24 md:py-36 lg:py-40">
         <div className="max-w-xl animate-fade-in">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-lg">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-lg animate-float">
             Sustainable Products for a Better Planet
           </h1>
-          <p className="text-white/90 text-lg md:text-xl mb-8 drop-shadow">
+          <p className="text-white/90 text-lg md:text-xl mb-8 drop-shadow animate-pulse-soft">
             Discover our collection of eco-friendly products that help reduce waste and
             protect our environment while enhancing your daily life.
           </p>

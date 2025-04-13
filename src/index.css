@@ -46,16 +46,18 @@
     --popover: 140 15% 12%;
     --popover-foreground: 60 30% 96%;
 
-    --primary: 150 30% 40%;
+    /* Improved green tone for dark mode */
+    --primary: 142 32% 42%;
     --primary-foreground: 60 30% 98%;
 
-    --secondary: 34 40% 40%;
+    /* Improved earth tone for dark mode */
+    --secondary: 36 38% 42%;
     --secondary-foreground: 60 30% 98%;
 
     --muted: 140 10% 20%;
     --muted-foreground: 140 5% 65%;
 
-    --accent: 34 40% 40%;
+    --accent: 36 38% 42%;
     --accent-foreground: 60 30% 98%;
 
     --destructive: 0 62.8% 30.6%;
@@ -63,7 +65,7 @@
 
     --border: 140 10% 25%;
     --input: 140 10% 25%;
-    --ring: 150 30% 45%;
+    --ring: 142 32% 42%;
   }
 }
 
@@ -94,17 +96,17 @@
     @apply bg-card rounded-lg overflow-hidden border border-border shadow-sm hover:shadow-md transition-all duration-200;
   }
   
-  /* New gradient classes */
+  /* Enhanced gradient classes */
   .gradient-primary {
-    @apply bg-gradient-to-r from-green-400 to-green-600;
+    @apply bg-gradient-to-r from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 hover:shadow-lg transition-all duration-300;
   }
   
   .gradient-secondary {
-    @apply bg-gradient-to-r from-earth-400 to-earth-600;
+    @apply bg-gradient-to-r from-earth-400 to-earth-600 dark:from-earth-500 dark:to-earth-700 hover:shadow-lg transition-all duration-300;
   }
   
   .gradient-card {
-    @apply bg-gradient-to-br from-white to-muted dark:from-card dark:to-muted;
+    @apply bg-gradient-to-br from-white to-muted dark:from-card dark:to-muted/70;
   }
   
   .gradient-hero {
@@ -112,19 +114,33 @@
   }
   
   .gradient-testimonial {
-    @apply bg-gradient-to-br from-green-50 to-earth-50 dark:from-green-900/20 dark:to-earth-900/20;
+    @apply bg-gradient-to-br from-green-50 to-earth-50 dark:from-green-900/30 dark:to-earth-900/30;
   }
   
+  /* Enhanced interactive elements */
   .hover-lift {
-    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+    @apply transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg active:translate-y-0 active:shadow-md;
   }
   
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-earth-500 dark:from-green-400 dark:to-earth-300;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-earth-500 dark:from-green-400 dark:to-earth-300;
   }
   
+  /* Enhanced animations */
   .animate-fade-in {
     animation: fadeIn 0.5s ease-out forwards;
+  }
+  
+  .animate-pulse-soft {
+    animation: pulseSoft 3s infinite;
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .button-hover {
+    @apply relative overflow-hidden transition-all duration-300 after:absolute after:inset-0 after:z-[-1] after:opacity-0 after:transition-opacity hover:after:opacity-100 after:bg-gradient-to-r after:from-primary/30 after:to-primary/10;
   }
   
   @keyframes fadeIn {
@@ -135,6 +151,24 @@
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+  
+  @keyframes pulseSoft {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
     }
   }
 }
