@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -24,7 +24,7 @@ import { products } from "@/data/products";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
 export default function Cart() {
@@ -33,6 +33,7 @@ export default function Cart() {
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [showQRCode, setShowQRCode] = useState(false);
   const [showCardForm, setShowCardForm] = useState(false);
+  const navigate = useNavigate();
   
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value);
@@ -66,8 +67,27 @@ export default function Cart() {
           title: "Order Placed Successfully!",
           description: "Your order will be delivered soon.",
         });
+        
+        // Generate order info for confirmation page
+        const orderId = Math.random().toString(36).substring(2, 10).toUpperCase();
+        const orderDate = new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        
+        // Clear cart and navigate to confirmation
         clearCart();
-        // Navigate to order confirmation in a real app
+        navigate('/order-confirmation', {
+          state: {
+            order: {
+              id: orderId,
+              total: cartTotal,
+              items: cartItems.reduce((total, item) => total + item.quantity, 0),
+              date: orderDate
+            }
+          }
+        });
       }, 1500);
     }
   };
@@ -79,11 +99,32 @@ export default function Cart() {
     
     setTimeout(() => {
       setIsProcessing(false);
+      
+      // Generate order info for confirmation page
+      const orderId = Math.random().toString(36).substring(2, 10).toUpperCase();
+      const orderDate = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
       toast({
         title: "Payment Successful!",
         description: "Your order will be delivered soon.",
       });
+      
+      // Clear cart and navigate to confirmation
       clearCart();
+      navigate('/order-confirmation', {
+        state: {
+          order: {
+            id: orderId,
+            total: cartTotal,
+            items: cartItems.reduce((total, item) => total + item.quantity, 0),
+            date: orderDate
+          }
+        }
+      });
     }, 1500);
   };
 
@@ -93,11 +134,32 @@ export default function Cart() {
     
     setTimeout(() => {
       setIsProcessing(false);
+      
+      // Generate order info for confirmation page
+      const orderId = Math.random().toString(36).substring(2, 10).toUpperCase();
+      const orderDate = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
       toast({
         title: "UPI Payment Confirmed!",
         description: "Your order will be delivered soon.",
       });
+      
+      // Clear cart and navigate to confirmation
       clearCart();
+      navigate('/order-confirmation', {
+        state: {
+          order: {
+            id: orderId,
+            total: cartTotal,
+            items: cartItems.reduce((total, item) => total + item.quantity, 0),
+            date: orderDate
+          }
+        }
+      });
     }, 1500);
   };
   
@@ -284,6 +346,9 @@ export default function Cart() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Scan QR Code to Pay</DialogTitle>
+            <DialogDescription>
+              Use any UPI app to scan and complete your payment
+            </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center space-y-4">
             <div className="bg-white p-4 rounded-lg">
@@ -307,6 +372,9 @@ export default function Cart() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Card Payment</DialogTitle>
+            <DialogDescription>
+              Enter your card details to complete the payment
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={submitCardPayment} className="space-y-4">
             <div className="space-y-2">
