@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ThemeToggle } from "../ThemeToggle";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { 
   ShoppingCart, 
@@ -28,39 +28,24 @@ interface NavbarProps {
 
 export function Navbar({ isLoggedIn = false }: NavbarProps) {
   const { cartCount } = useCart();
+  const { user, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   
-  const handleLogout = () => {
-    // Clear authentication state
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("user");
-    
-    // Show success message
-    toast({
-      title: "Logged out successfully",
-      description: "You have been logged out of your account.",
-    });
-    
-    // Redirect to home page
+  const handleLogout = async () => {
+    await signOut();
     navigate("/");
-    
-    // Trigger storage event to update other tabs
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'isLoggedIn',
-      newValue: 'false'
-    }));
   };
   
-  // Get user data if logged in
-  const userData = isLoggedIn ? JSON.parse(localStorage.getItem("user") || "{}") : null;
+  // Get user data
+  const userEmail = user?.email;
 
   return (
     <header className="bg-background/80 backdrop-blur-sm border-b border-border sticky top-0 z-40">
-      <div className="container-custom py-4">
+      <div className="container py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
             <div className="rounded-full bg-primary w-8 h-8 flex items-center justify-center">
@@ -101,7 +86,7 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
                   <DropdownMenuLabel>
                     <div className="flex flex-col">
                       <span>My Account</span>
-                      <span className="text-xs text-muted-foreground truncate">{userData?.email}</span>
+                      <span className="text-xs text-muted-foreground truncate">{userEmail}</span>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />

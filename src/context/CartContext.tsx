@@ -2,160 +2,159 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Product } from "@/data/products";
 import { toast } from "@/components/ui/use-toast";
-import { products } from "@/data/products";
+import { getCartItems, addToCart, updateCartItemQuantity, removeFromCart, clearCart } from "@/services/supabaseService";
+import { useAuth } from "@/context/AuthContext";
 
 interface CartItem {
-  id: number;
-  name: string;
-  price: number;
-  description: string;
-  image: string;
-  category: string;
+  id: string;
   quantity: number;
-  featured?: boolean;
-  stock: number;
+  products: {
+    id: string;
+    name: string;
+    price: number;
+    description: string;
+    image_url: string;
+    category: string;
+    stock: number;
+  };
 }
 
 interface CartContextType {
   cartItems: CartItem[];
   addToCart: (product: Product | (Product & { quantity: number })) => void;
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  removeFromCart: (itemId: string) => void;
+  updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
   cartTotal: number;
   cartCount: number;
+  isLoading: boolean;
+  refetchCart: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
-    const savedCart = localStorage.getItem("greenmarket-cart");
-    return savedCart ? JSON.parse(savedCart) : [];
-  });
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
 
+  // Fetch cart items when user changes
   useEffect(() => {
-    localStorage.setItem("greenmarket-cart", JSON.stringify(cartItems));
-  }, [cartItems]);
+    if (user) {
+      refetchCart();
+    } else {
+      setCartItems([]);
+    }
+  }, [user]);
 
-  const addToCart = (product: Product | (Product & { quantity: number })) => {
-    // Get current product stock
-    const currentProduct = products.find(p => p.id === product.id);
-    const currentStock = currentProduct?.stock || 0;
+  const refetchCart = async () => {
+    if (!user) return;
     
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.id === product.id);
-      
-      if (existingItem) {
-        // Check if adding more would exceed stock
-        const newQuantity = 'quantity' in product 
-          ? existingItem.quantity + product.quantity
-          : existingItem.quantity + 1;
-          
-        if (newQuantity > currentStock) {
-          toast({
-            title: "Cannot add more",
-            description: `Only ${currentStock} in stock`,
-            variant: "destructive"
-          });
-          return prevItems;
-        }
-        
-        toast({
-          title: "Updated cart",
-          description: `${product.name} quantity updated`,
-        });
-        
-        return prevItems.map((item) =>
-          item.id === product.id ? { ...item, quantity: newQuantity } : item
-        );
-      }
-      
-      // Check if adding new item would exceed stock
-      const quantityToAdd = 'quantity' in product ? product.quantity : 1;
-      if (quantityToAdd > currentStock) {
-        toast({
-          title: "Cannot add to cart",
-          description: `Only ${currentStock} in stock`,
-          variant: "destructive"
-        });
-        return prevItems;
-      }
-      
-      toast({
-        title: "Added to cart",
-        description: product.name,
-      });
-      
-      return [...prevItems, { 
-        ...product, 
-        quantity: 'quantity' in product ? product.quantity : 1 
-      }];
-    });
+    try {
+      setIsLoading(true);
+      const items = await getCartItems();
+      setCartItems(items || []);
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const removeFromCart = (productId: number) => {
-    setCartItems((prevItems) => {
-      const updatedCart = prevItems.filter((item) => item.id !== productId);
-      
+  const handleAddToCart = async (product: Product | (Product & { quantity: number })) => {
+    if (!user) {
       toast({
-        title: "Removed from cart",
+        title: "Please sign in",
+        description: "You need to be logged in to add items to your cart",
         variant: "destructive",
-      });
-      
-      return updatedCart;
-    });
-  };
-
-  const updateQuantity = (productId: number, quantity: number) => {
-    if (quantity < 1) return;
-    
-    // Get current product stock
-    const currentProduct = products.find(p => p.id === productId);
-    if (!currentProduct) return;
-    
-    // Make sure quantity doesn't exceed stock
-    if (quantity > currentProduct.stock) {
-      toast({
-        title: "Cannot add more",
-        description: `Only ${currentProduct.stock} in stock`,
-        variant: "destructive"
       });
       return;
     }
     
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
-      )
-    );
+    try {
+      setIsLoading(true);
+      const quantity = 'quantity' in product ? product.quantity : 1;
+      const success = await addToCart(product.id.toString(), quantity);
+      
+      if (success) {
+        await refetchCart();
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const clearCart = () => {
-    setCartItems([]);
-    toast({
-      title: "Cart cleared",
-      variant: "destructive",
-    });
+  const handleRemoveFromCart = async (itemId: string) => {
+    try {
+      setIsLoading(true);
+      const success = await removeFromCart(itemId);
+      
+      if (success) {
+        await refetchCart();
+      }
+    } catch (error) {
+      console.error("Error removing from cart:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateQuantity = async (itemId: string, quantity: number) => {
+    if (quantity < 1) return;
+    
+    try {
+      setIsLoading(true);
+      const success = await updateCartItemQuantity(itemId, quantity);
+      
+      if (success) {
+        await refetchCart();
+      }
+    } catch (error) {
+      console.error("Error updating cart:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClearCart = async () => {
+    try {
+      setIsLoading(true);
+      const success = await clearCart();
+      
+      if (success) {
+        setCartItems([]);
+      }
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const cartTotal = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
+    (total, item) => total + (item.products?.price || 0) * item.quantity,
     0
   );
 
-  const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0);
+  const cartCount = cartItems.reduce(
+    (count, item) => count + item.quantity, 
+    0
+  );
 
   return (
     <CartContext.Provider
       value={{
         cartItems,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
+        addToCart: handleAddToCart,
+        removeFromCart: handleRemoveFromCart,
+        updateQuantity: handleUpdateQuantity,
+        clearCart: handleClearCart,
         cartTotal,
         cartCount,
+        isLoading,
+        refetchCart
       }}
     >
       {children}
