@@ -26,13 +26,13 @@ export function MobileMenu({
     <>
       <div
         className={cn(
-          "fixed inset-0 bg-background/95 backdrop-blur-sm border-r border-border p-4 z-50 w-64 transition-transform duration-300 md:hidden",
+          "fixed inset-y-0 left-0 bg-background/95 backdrop-blur-sm border-r border-border p-4 z-50 w-72 transition-transform duration-300 ease-in-out md:hidden shadow-lg",
           isMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="flex justify-between items-center mb-6">
           <Logo />
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close menu">
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -45,63 +45,65 @@ export function MobileMenu({
               </div>
               <div className="flex flex-col">
                 <span className="font-medium">{userName}</span>
-                <span className="text-xs text-muted-foreground truncate">{userEmail}</span>
+                {userEmail && (
+                  <span className="text-xs text-muted-foreground truncate max-w-[180px]">{userEmail}</span>
+                )}
               </div>
             </div>
           </div>
         )}
         
-        <nav className="flex flex-col space-y-4">
+        <nav className="flex flex-col space-y-1">
           <Link
             to="/"
             onClick={onClose}
-            className="text-foreground hover:text-primary py-2 transition-colors"
+            className="text-foreground hover:text-primary hover:bg-primary/5 py-3 px-2 rounded-md transition-colors"
           >
             Home
           </Link>
           <Link
             to="/products"
             onClick={onClose}
-            className="text-foreground hover:text-primary py-2 transition-colors"
+            className="text-foreground hover:text-primary hover:bg-primary/5 py-3 px-2 rounded-md transition-colors"
           >
             Products
           </Link>
           <Link
             to="/about"
             onClick={onClose}
-            className="text-foreground hover:text-primary py-2 transition-colors"
+            className="text-foreground hover:text-primary hover:bg-primary/5 py-3 px-2 rounded-md transition-colors"
           >
             About
           </Link>
           <Link
             to="/contact"
             onClick={onClose}
-            className="text-foreground hover:text-primary py-2 transition-colors"
+            className="text-foreground hover:text-primary hover:bg-primary/5 py-3 px-2 rounded-md transition-colors"
           >
             Contact
           </Link>
           
           {isLoggedIn ? (
             <>
-              <div className="pt-2 border-t border-border">
+              <div className="pt-4 mt-2 border-t border-border">
                 <Link
                   to="/profile"
                   onClick={onClose}
-                  className="text-foreground hover:text-primary py-2 transition-colors block"
+                  className="text-foreground hover:text-primary hover:bg-primary/5 py-3 px-2 rounded-md transition-colors block"
                 >
                   Profile
                 </Link>
                 <Link
                   to="/orders"
                   onClick={onClose}
-                  className="text-foreground hover:text-primary py-2 transition-colors block"
+                  className="text-foreground hover:text-primary hover:bg-primary/5 py-3 px-2 rounded-md transition-colors block"
                 >
                   My Orders
                 </Link>
                 <Link
                   to="/settings"
                   onClick={onClose}
-                  className="text-foreground hover:text-primary py-2 transition-colors block"
+                  className="text-foreground hover:text-primary hover:bg-primary/5 py-3 px-2 rounded-md transition-colors block"
                 >
                   Settings
                 </Link>
@@ -110,7 +112,7 @@ export function MobileMenu({
                     onLogout();
                     onClose();
                   }}
-                  className="text-destructive hover:text-destructive/80 py-2 transition-colors flex items-center w-full mt-2"
+                  className="text-destructive hover:text-destructive/80 hover:bg-destructive/5 py-3 px-2 rounded-md transition-colors flex items-center w-full mt-2"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
@@ -121,7 +123,7 @@ export function MobileMenu({
             <Link
               to="/login"
               onClick={onClose}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-md py-2 px-4 text-center transition-colors mt-4"
+              className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md py-3 px-4 text-center transition-colors"
             >
               Login / Register
             </Link>
@@ -129,11 +131,12 @@ export function MobileMenu({
         </nav>
       </div>
       
-      {/* Overlay */}
+      {/* Overlay with improved animation */}
       {isMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden" 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden animate-fade-in"
           onClick={onClose}
+          aria-hidden="true"
         />
       )}
     </>

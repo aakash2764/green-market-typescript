@@ -57,6 +57,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setCartItems(items || []);
     } catch (error) {
       console.error("Error fetching cart:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch your cart items",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -79,9 +84,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       
       if (success) {
         await refetchCart();
+        toast({
+          title: "Added to cart",
+          description: `${product.name} has been added to your cart`,
+          variant: "default",
+        });
       }
     } catch (error) {
       console.error("Error adding to cart:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -94,9 +109,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       
       if (success) {
         await refetchCart();
+        toast({
+          title: "Removed from cart",
+          description: "Item has been removed from your cart",
+          variant: "default",
+        });
       }
     } catch (error) {
       console.error("Error removing from cart:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove item from cart",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -111,9 +136,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       
       if (success) {
         await refetchCart();
+        toast({
+          title: "Cart updated",
+          description: "Item quantity has been updated",
+          variant: "default",
+        });
       }
     } catch (error) {
       console.error("Error updating cart:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update item quantity",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -126,9 +161,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       
       if (success) {
         setCartItems([]);
+        toast({
+          title: "Cart cleared",
+          description: "All items have been removed from your cart",
+          variant: "default",
+        });
       }
     } catch (error) {
       console.error("Error clearing cart:", error);
+      toast({
+        title: "Error",
+        description: "Failed to clear cart",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

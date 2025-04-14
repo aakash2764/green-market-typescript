@@ -1,21 +1,50 @@
 
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 export function DesktopNavigation() {
+  const location = useLocation();
+  
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+  
   return (
-    <nav className="hidden md:flex items-center space-x-6">
-      <Link to="/" className="text-foreground hover:text-primary transition-colors">
+    <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
+      <NavLink to="/" isActive={isActive("/")}>
         Home
-      </Link>
-      <Link to="/products" className="text-foreground hover:text-primary transition-colors">
+      </NavLink>
+      <NavLink to="/products" isActive={isActive("/products")}>
         Products
-      </Link>
-      <Link to="/about" className="text-foreground hover:text-primary transition-colors">
+      </NavLink>
+      <NavLink to="/about" isActive={isActive("/about")}>
         About
-      </Link>
-      <Link to="/contact" className="text-foreground hover:text-primary transition-colors">
+      </NavLink>
+      <NavLink to="/contact" isActive={isActive("/contact")}>
         Contact
-      </Link>
+      </NavLink>
     </nav>
+  );
+}
+
+interface NavLinkProps {
+  to: string;
+  isActive: boolean;
+  children: React.ReactNode;
+}
+
+function NavLink({ to, isActive, children }: NavLinkProps) {
+  return (
+    <Link 
+      to={to} 
+      className={cn(
+        "px-3 py-2 rounded-md text-sm font-medium transition-colors",
+        isActive 
+          ? "text-primary bg-primary/10" 
+          : "text-foreground hover:text-primary hover:bg-primary/5"
+      )}
+    >
+      {children}
+    </Link>
   );
 }
