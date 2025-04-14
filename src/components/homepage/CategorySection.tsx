@@ -1,7 +1,14 @@
 
 import { Link } from "react-router-dom";
-import { products } from "@/data/products";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { createClient } from '@supabase/supabase-js'
+
+// Initialize the Supabase client
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL || '',
+  import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+)
 
 interface CategoryProps {
   name: string;
@@ -33,9 +40,27 @@ function Category({ name, image, link, className }: CategoryProps) {
 }
 
 export function CategorySection() {
-  // Extract unique categories
-  const categories = Array.from(new Set(products.map(product => product.category)));
-  
+  const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      const { data, error } = await supabase
+        .from('products')
+        .select('category');
+      
+      if (error) {
+        console.error('Error fetching categories:', error);
+        return;
+      }
+
+      // Extract unique categories
+      const uniqueCategories = Array.from(new Set(data.map(product => product.category)));
+      setCategories(uniqueCategories);
+    }
+
+    fetchCategories();
+  }, []);
+
   const categoryImages: Record<string, string> = {
     bathroom: "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800&auto=format&fit=crop",
     kitchen: "https://images.unsplash.com/photo-1609167830220-7164aa360951?w=800&auto=format&fit=crop",

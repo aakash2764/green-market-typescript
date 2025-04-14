@@ -1,22 +1,23 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { Product } from "@/data/products";
 import { useToast } from "@/components/ui/use-toast";
 import { getCartItems, addToCart, updateCartItemQuantity, removeFromCart, clearCart } from "@/services/supabaseService";
 import { useAuth } from "@/context/AuthContext";
 
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  image_url: string;
+  category: string;
+  stock: number;
+}
+
 interface CartItem {
   id: string;
   quantity: number;
-  products: {
-    id: string;
-    name: string;
-    price: number;
-    description: string;
-    image_url: string;
-    category: string;
-    stock: number;
-  };
+  products: Product;
 }
 
 interface CartContextType {

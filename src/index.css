@@ -1,7 +1,7 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 
 @layer base {
   :root {
@@ -170,5 +170,10 @@
     50% {
       transform: translateY(-10px);
     }
+  }
+}
+@layer utilities {
+  .border-border {
+    border-color: #e5e7eb; /* or whatever */
   }
 }

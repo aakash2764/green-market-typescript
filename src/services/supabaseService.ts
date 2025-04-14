@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Product } from "@/data/products";
 import { toast } from "@/components/ui/use-toast";
 
 // Fetch all products 
@@ -26,21 +25,16 @@ export async function fetchProducts() {
 // Fetch featured products
 export async function fetchFeaturedProducts() {
   const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('featured', true)
-    .order('name');
-    
+    .from("products")
+    .select("*")
+    .eq("featured", true)
+    .order("name");
+
   if (error) {
-    console.error('Error fetching featured products:', error);
-    toast({
-      title: "Error fetching featured products",
-      description: error.message,
-      variant: "destructive",
-    });
+    console.error("Error fetching featured products:", error.message);
     return [];
   }
-  
+
   return data;
 }
 
