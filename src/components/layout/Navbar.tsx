@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ThemeToggle } from "../ThemeToggle";
@@ -42,6 +43,7 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
   
   // Get user data
   const userEmail = user?.email;
+  const userName = user?.user_metadata?.full_name || "User";
 
   return (
     <header className="bg-background/80 backdrop-blur-sm border-b border-border sticky top-0 z-40">
@@ -166,8 +168,8 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
                 <User className="h-5 w-5 text-primary" />
               </div>
               <div className="flex flex-col">
-                <span className="font-medium">{userData?.name || "User"}</span>
-                <span className="text-xs text-muted-foreground truncate">{userData?.email}</span>
+                <span className="font-medium">{userName}</span>
+                <span className="text-xs text-muted-foreground truncate">{userEmail}</span>
               </div>
             </div>
           </div>

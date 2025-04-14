@@ -20,7 +20,6 @@ import {
   Home,
   Check
 } from "lucide-react";
-import { products } from "@/data/products";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
@@ -191,15 +190,15 @@ export default function Cart() {
                   <div className="flex flex-col sm:flex-row">
                     <div className="w-full sm:w-32 h-32 bg-muted">
                       <img
-                        src={item.image}
-                        alt={item.name}
+                        src={item.products.image_url}
+                        alt={item.products.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
                     <div className="p-4 flex-grow flex flex-col">
                       <div className="flex justify-between">
-                        <Link to={`/products/${item.id}`} className="font-medium hover:text-primary transition-colors">
-                          {item.name}
+                        <Link to={`/products/${item.products.id}`} className="font-medium hover:text-primary transition-colors">
+                          {item.products.name}
                         </Link>
                         <button
                           onClick={() => removeFromCart(item.id)}
@@ -209,7 +208,7 @@ export default function Cart() {
                           <span className="sr-only">Remove</span>
                         </button>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">₹{item.price.toFixed(2)}</p>
+                      <p className="text-sm text-muted-foreground mb-2">₹{item.products.price.toFixed(2)}</p>
                       <div className="flex justify-between items-center mt-auto">
                         <div className="flex items-center border border-border rounded-md">
                           <button
@@ -223,14 +222,14 @@ export default function Cart() {
                           <span className="w-8 text-center">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            disabled={item.quantity >= getItemStock(item.id)}
+                            disabled={item.quantity >= getItemStock(item.products.id)}
                             className="px-2 py-1 text-muted-foreground hover:text-foreground disabled:opacity-50"
                           >
                             <Plus className="h-4 w-4" />
                             <span className="sr-only">Increase</span>
                           </button>
                         </div>
-                        <p className="font-medium">₹{(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="font-medium">₹{(Number(item.products.price) * item.quantity).toFixed(2)}</p>
                       </div>
                     </div>
                   </div>
@@ -405,11 +404,10 @@ export default function Cart() {
   );
   
   // Helper function to get current stock for an item
-  function getItemStock(productId: number) {
-    const product = cartItems.find(item => item.id === productId);
+  function getItemStock(productId: string) {
+    const product = cartItems.find(item => item.products.id === productId);
     if (!product) return 0;
     
-    const currentProduct = products.find(p => p.id === productId);
-    return currentProduct?.stock || 0;
+    return product.products.stock || 0;
   }
 }
