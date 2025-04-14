@@ -1,7 +1,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { Product } from "@/data/products";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { getCartItems, addToCart, updateCartItemQuantity, removeFromCart, clearCart } from "@/services/supabaseService";
 import { useAuth } from "@/context/AuthContext";
 
@@ -37,6 +37,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   // Fetch cart items when user changes
   useEffect(() => {

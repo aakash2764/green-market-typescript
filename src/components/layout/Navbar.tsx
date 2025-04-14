@@ -1,11 +1,10 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, LogOut } from "lucide-react";
+import { Menu } from "lucide-react";
 import { ThemeToggle } from "../ThemeToggle";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
 import { Logo } from "./navbar/Logo";
 import { DesktopNavigation } from "./navbar/DesktopNavigation";
 import { DesktopUserMenu } from "./navbar/DesktopUserMenu";
@@ -19,7 +18,6 @@ interface NavbarProps {
 export function Navbar({ isLoggedIn = false }: NavbarProps) {
   const { user, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
