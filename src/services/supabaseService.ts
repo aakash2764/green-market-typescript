@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
-// Fetch all products 
+// Fetch all products
 export async function fetchProducts() {
   const { data, error } = await supabase
     .from('products')
@@ -603,5 +603,26 @@ export async function updateUserProfile(profile: any) {
     description: "Your profile has been updated successfully",
   });
   
+  return data;
+}
+
+export async function fetchUserOrders(userId: string) {
+  const { data, error } = await supabase
+    .from('orders')
+    .select(`
+      *,
+      order_items (
+        *,
+        product:products (*)
+      )
+    `)
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching orders:', error);
+    throw error;
+  }
+
   return data;
 }

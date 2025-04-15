@@ -10,7 +10,7 @@ interface Product {
   description: string;
   price: number;
   stock: number;
-  image: string;
+  image_url: string;  // Changed from 'image' to 'image_url' to match Supabase column
   featured: boolean;
 }
 
@@ -30,7 +30,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <Link to={`/products/${product.id}`} className="block relative overflow-hidden group">
         <div className="aspect-square overflow-hidden bg-muted">
           <img
-            src={product.image}
+            src={product.image_url}  // Changed from product.image to product.image_url
             alt={product.name}
             className={`object-cover w-full h-full transition-transform duration-300 group-hover:scale-105 ${
               isOutOfStock ? "opacity-70" : ""
@@ -69,7 +69,10 @@ export function ProductCard({ product }: ProductCardProps) {
           <span className="font-bold">₹{product.price.toFixed(2)}</span>
           <Button
             size="sm"
-            onClick={() => addToCart(product)}
+            onClick={() => addToCart({
+              ...product, quantity: 1,
+              category: ""
+            })}
             className="rounded-full"
             disabled={isOutOfStock}
             variant={isOutOfStock ? "outline" : "default"}

@@ -25,8 +25,11 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";  // Add this import at the top
 
 export default function Cart() {
+  const { user } = useAuth();
   const { cartItems, removeFromCart, updateQuantity, clearCart, cartTotal } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("cod");
@@ -38,7 +41,52 @@ export default function Cart() {
     setPaymentMethod(value);
   };
   
-  const handleCheckout = () => {
+  const saveOrder = async (orderId: string) => {
+    try {
+      // Save order
+      const { error: orderError } = await supabase  // Changed from supabaseClient to supabase
+        .from('orders')
+        .insert({
+          id: orderId,
+          user_id: user?.id,
+          status: 'pending',
+          total_amount: cartTotal,
+          shipping_address: 'Default Address', // You might want to add address input
+          created_at: new Date().toISOString()
+        });
+
+      if (orderError) throw orderError;
+
+      // Save order items
+      const orderItems = cartItems.map(item => ({
+        order_id: orderId,
+        product_id: item.products.id,
+        quantity: item.quantity,
+        unit_price: item.products.price,
+        created_at: new Date().toISOString()
+      }));
+
+      const { error: itemsError } = await supabase  // Changed from supabaseClient to supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+    } catch (error) {
+      console.error('Error saving order:', error);
+      throw error;
+    }
+  };
+
+  const handleCheckout = async () => {
+    if (!user) {
+      toast({
+        title: "Please login to continue",
+        variant: "destructive",
+      });
+      navigate('/login');
+      return;
+    }
     // Validate payment method
     if (!paymentMethod) {
       toast({
@@ -91,28 +139,20 @@ export default function Cart() {
     }
   };
 
-  const submitCardPayment = (e: React.FormEvent) => {
+  const submitCardPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setShowCardForm(false);
     setIsProcessing(true);
     
-    setTimeout(() => {
-      setIsProcessing(false);
-      
-      // Generate order info for confirmation page
-      const orderId = Math.random().toString(36).substring(2, 10).toUpperCase();
-      const orderDate = new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
+    try {
+      const orderId = crypto.randomUUID();
+      await saveOrder(orderId);
       
       toast({
         title: "Payment Successful!",
         description: "Your order will be delivered soon.",
       });
       
-      // Clear cart and navigate to confirmation
       clearCart();
       navigate('/order-confirmation', {
         state: {
@@ -120,34 +160,34 @@ export default function Cart() {
             id: orderId,
             total: cartTotal,
             items: cartItems.reduce((total, item) => total + item.quantity, 0),
-            date: orderDate
+            date: new Date().toLocaleDateString()
           }
         }
       });
-    }, 1500);
+    } catch (error) {
+      toast({
+        title: "Failed to process payment",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const confirmUpiPayment = () => {
+  const confirmUpiPayment = async () => {
     setShowQRCode(false);
     setIsProcessing(true);
     
-    setTimeout(() => {
-      setIsProcessing(false);
-      
-      // Generate order info for confirmation page
-      const orderId = Math.random().toString(36).substring(2, 10).toUpperCase();
-      const orderDate = new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
+    try {
+      const orderId = crypto.randomUUID();
+      await saveOrder(orderId);
       
       toast({
         title: "UPI Payment Confirmed!",
         description: "Your order will be delivered soon.",
       });
       
-      // Clear cart and navigate to confirmation
       clearCart();
       navigate('/order-confirmation', {
         state: {
@@ -155,11 +195,19 @@ export default function Cart() {
             id: orderId,
             total: cartTotal,
             items: cartItems.reduce((total, item) => total + item.quantity, 0),
-            date: orderDate
+            date: new Date().toLocaleDateString()
           }
         }
       });
-    }, 1500);
+    } catch (error) {
+      toast({
+        title: "Failed to confirm payment",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
   
   if (cartItems.length === 0) {

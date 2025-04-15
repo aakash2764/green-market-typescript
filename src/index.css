@@ -172,8 +172,3 @@
     }
   }
 }
-@layer utilities {
-  .border-border {
-    border-color: #e5e7eb; /* or whatever */
-  }
-}
