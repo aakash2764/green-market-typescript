@@ -140,9 +140,9 @@ export type Database = {
           category: string
           created_at: string
           description: string
-          featured: boolean | null
+          featured: boolean
           id: string
-          image_url: string | null
+          image_url: string
           name: string
           price: number
           stock: number
@@ -151,9 +151,9 @@ export type Database = {
           category: string
           created_at?: string
           description: string
-          featured?: boolean | null
+          featured?: boolean
           id?: string
-          image_url?: string | null
+          image_url: string
           name: string
           price: number
           stock?: number
@@ -162,9 +162,9 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string
-          featured?: boolean | null
+          featured?: boolean
           id?: string
-          image_url?: string | null
+          image_url?: string
           name?: string
           price?: number
           stock?: number
@@ -173,28 +173,37 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           avatar_url: string | null
           created_at: string
           eco_points: number
           email: string
           full_name: string | null
           id: string
+          phone: string | null
+          updated_at: string | null
         }
         Insert: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string
           eco_points?: number
           email: string
           full_name?: string | null
           id: string
+          phone?: string | null
+          updated_at?: string | null
         }
         Update: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string
           eco_points?: number
           email?: string
           full_name?: string | null
           id?: string
+          phone?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
