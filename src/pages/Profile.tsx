@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -152,16 +153,10 @@ export default function Profile() {
         throw new Error("New passwords don't match");
       }
   
-      const { error } = await supabase.auth.updateUser(
-        {
-          password: passwords.new
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`
-          }
-        }
-      );
+      // Fixed: Removed the headers from the options parameter
+      const { error } = await supabase.auth.updateUser({
+        password: passwords.new
+      });
   
       if (error) throw error;
   
