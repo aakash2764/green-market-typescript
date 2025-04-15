@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -8,10 +7,8 @@ import { Input } from "@/components/ui/input";
 import { User, Save, Edit2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
-import { Lock } from "lucide-react"; // Add this import
+import { Lock } from "lucide-react";
 
-// Remove the duplicate Supabase client creation
-// Update the interface
 interface UserProfile {
   id: string;
   full_name: string;
@@ -59,7 +56,6 @@ export default function Profile() {
           email: user.email || '',
         });
       } else {
-        // Create initial profile if it doesn't exist
         const { error: insertError } = await supabase
           .from('profiles')
           .insert({
@@ -83,7 +79,6 @@ export default function Profile() {
     if (!user) return;
 
     try {
-      // First try to update
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
@@ -95,7 +90,6 @@ export default function Profile() {
         .eq('id', user.id);
 
       if (updateError) {
-        // If update fails, try to insert
         const { error: insertError } = await supabase
           .from('profiles')
           .insert({
@@ -134,7 +128,6 @@ export default function Profile() {
     confirm: ''
   });
 
-  // Add this function
   const handlePasswordChange = async () => {
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -153,7 +146,6 @@ export default function Profile() {
         throw new Error("New passwords don't match");
       }
   
-      // Fixed: Removed the headers from the options parameter
       const { error } = await supabase.auth.updateUser({
         password: passwords.new
       });
