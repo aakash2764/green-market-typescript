@@ -64,10 +64,17 @@ export default function Orders() {
         setError(null);
         console.log('Loading orders for user:', user.id);
         const fetchedOrders = await fetchUserOrders(user.id);
-        console.log('Fetched orders:', fetchedOrders);    
         
+        // Add more detailed logging
+        if (fetchedOrders && fetchedOrders.length > 0) {
+          console.log('Complete first order data:', fetchedOrders[0]);
+          console.log('Order items:', fetchedOrders[0].order_items);
+          if (fetchedOrders[0].order_items && fetchedOrders[0].order_items.length > 0) {
+            console.log('First item in first order:', fetchedOrders[0].order_items[0]);
+          }
+        }
         
-        setOrders(fetchedOrders);
+        setOrders(fetchedOrders || []);
       } catch (err) {
         console.error('Error loading orders:', err);
         setError('Failed to load your orders. Please try again later.');

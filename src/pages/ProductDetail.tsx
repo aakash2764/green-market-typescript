@@ -89,7 +89,7 @@ export default function ProductDetail() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         <div className="relative bg-muted rounded-lg overflow-hidden">
           <img
-            src={product.image}
+            src={product.image_url}
             alt={product.name}
             className={`w-full h-auto object-cover ${isOutOfStock ? "opacity-70" : ""}`}
           />
