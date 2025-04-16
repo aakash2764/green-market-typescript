@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
@@ -13,21 +14,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Alert, AlertCircle, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
-  ShoppingCart,
   Package,
   Trash2,
   Minus,
   Plus,
   Loader2,
   ArrowLeft,
+  AlertCircle,
 } from "lucide-react";
 import { OrderConfirmationModal } from "@/components/order/OrderConfirmationModal";
 import { motion } from "framer-motion";
 import { pageVariants, itemVariants, buttonVariants } from "@/lib/animations";
 
-interface CartItem {
+interface CartProduct {
   id: string;
   name: string;
   price: number;
@@ -37,7 +38,7 @@ interface CartItem {
 }
 
 export default function Cart() {
-  const { cartItems, cartTotal, updateItemQuantity, removeFromCart, clearCart } = useCart();
+  const { cartItems, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [shippingInfo, setShippingInfo] = useState("");
@@ -88,7 +89,7 @@ export default function Cart() {
             order_id: orderData.id,
             product_id: item.id,
             quantity: item.quantity,
-            unit_price: item.price
+            unit_price: item.products.price
           })
           .select()
           .single();
@@ -197,10 +198,10 @@ export default function Cart() {
                     whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
                   >
                     <div className="relative w-16 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
-                      {item.image_url ? (
+                      {item.products.image_url ? (
                         <motion.img
-                          src={item.image_url}
-                          alt={item.name}
+                          src={item.products.image_url}
+                          alt={item.products.name}
                           className="w-full h-full object-cover"
                           whileHover={{ scale: 1.1 }}
                         />
@@ -210,9 +211,9 @@ export default function Cart() {
                     </div>
                     
                     <div className="flex-1">
-                      <h3 className="font-medium">{item.name}</h3>
+                      <h3 className="font-medium">{item.products.name}</h3>
                       <p className="text-sm text-muted-foreground">
-                        ₹{item.price.toFixed(2)} each
+                        ₹{item.products.price.toFixed(2)} each
                       </p>
                     </div>
                     
@@ -226,7 +227,7 @@ export default function Cart() {
                           variant="outline"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => updateItemQuantity(item.id, Math.max(1, item.quantity - 1))}
+                          onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
@@ -243,7 +244,7 @@ export default function Cart() {
                           variant="outline"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
@@ -252,7 +253,7 @@ export default function Cart() {
                     
                     <div className="text-right">
                       <p className="font-medium">
-                        ₹{(item.price * item.quantity).toFixed(2)}
+                        ₹{(item.products.price * item.quantity).toFixed(2)}
                       </p>
                       <motion.div
                         whileHover="hover"

@@ -61,7 +61,7 @@ export function AnimatedProductCard({ product }: ProductCardProps) {
           )}
           {product.stock > 0 && product.stock <= 5 && (
             <Badge
-              variant="warning"
+              variant="secondary"
               className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
             >
               Low Stock
