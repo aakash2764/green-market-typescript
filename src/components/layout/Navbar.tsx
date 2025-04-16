@@ -32,6 +32,9 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
   // Get user data
   const userEmail = user?.email;
   const userName = user?.user_metadata?.full_name || "User";
+  
+  // Determine if user is logged in based on user object
+  const userIsLoggedIn = !!user;
 
   return (
     <header className="bg-background/80 backdrop-blur-sm border-b border-border sticky top-0 z-40 transition-all duration-200">
@@ -45,7 +48,7 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
           <div className="flex items-center gap-2 md:gap-3">
             <ThemeToggle />
             
-            <DesktopUserMenu isLoggedIn={isLoggedIn} onLogout={handleLogout} />
+            <DesktopUserMenu isLoggedIn={userIsLoggedIn} onLogout={handleLogout} />
             
             <CartButton />
             
@@ -66,7 +69,7 @@ export function Navbar({ isLoggedIn = false }: NavbarProps) {
       {/* Mobile Navigation */}
       <MobileMenu 
         isMenuOpen={isMenuOpen}
-        isLoggedIn={isLoggedIn}
+        isLoggedIn={userIsLoggedIn}
         userName={userName}
         userEmail={userEmail}
         onClose={() => setIsMenuOpen(false)}

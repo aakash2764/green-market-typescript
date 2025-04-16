@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
@@ -26,7 +25,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/lib/supabase";  // Add this import at the top
+import { supabase } from "@/lib/supabase";
 
 export default function Cart() {
   const { user } = useAuth();
@@ -41,37 +40,51 @@ export default function Cart() {
     setPaymentMethod(value);
   };
   
+  // Function to create a new order in the database
   const saveOrder = async (orderId: string) => {
     try {
-      // Save order
-      const { error: orderError } = await supabase  // Changed from supabaseClient to supabase
+      if (!user) throw new Error('User not authenticated');
+      
+      // First, create the order entry
+      const { error: orderError } = await supabase
         .from('orders')
         .insert({
           id: orderId,
-          user_id: user?.id,
-          status: 'pending',
+          user_id: user.id,
+          status: 'confirmed',
           total_amount: cartTotal,
-          shipping_address: 'Default Address', // You might want to add address input
+          shipping_address: 'Customer Address', // This should be dynamic in a real app
           created_at: new Date().toISOString()
         });
 
       if (orderError) throw orderError;
 
-      // Save order items
-      const orderItems = cartItems.map(item => ({
-        order_id: orderId,
-        product_id: item.products.id,
-        quantity: item.quantity,
-        unit_price: item.products.price,
-        created_at: new Date().toISOString()
-      }));
+      // Then create order items and update product quantities
+      for (const item of cartItems) {
+        // Insert order item
+        const { error: itemError } = await supabase
+          .from('order_items')
+          .insert({
+            order_id: orderId,
+            product_id: item.products.id,
+            quantity: item.quantity,
+            unit_price: item.products.price,
+            created_at: new Date().toISOString()
+          });
 
-      const { error: itemsError } = await supabase  // Changed from supabaseClient to supabase
-        .from('order_items')
-        .insert(orderItems);
+        if (itemError) throw itemError;
 
-      if (itemsError) throw itemsError;
+        // Update product stock
+        const { error: stockError } = await supabase
+          .from('products')
+          .update({ stock: item.products.stock - item.quantity })
+          .eq('id', item.products.id);
 
+        if (stockError) throw stockError;
+      }
+
+      console.log("Order saved successfully:", orderId);
+      return true;
     } catch (error) {
       console.error('Error saving order:', error);
       throw error;

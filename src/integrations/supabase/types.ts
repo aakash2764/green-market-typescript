@@ -112,6 +112,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          product_id: string | null
           shipping_address: Json
           status: string
           total_amount: number
@@ -120,6 +121,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          product_id?: string | null
           shipping_address: Json
           status?: string
           total_amount: number
@@ -128,12 +130,21 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          product_id?: string | null
           shipping_address?: Json
           status?: string
           total_amount?: number
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -212,7 +223,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      decrement_stock: {
+        Args: { row_id: string; amount: number }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never

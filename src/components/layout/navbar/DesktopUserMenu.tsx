@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -44,7 +44,10 @@ export function DesktopUserMenu({ isLoggedIn, onLogout }: DesktopUserMenuProps) 
             <Link to="/profile">Profile</Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link to="/orders">My Orders</Link>
+            <Link to="/orders" className="flex items-center">
+              <Package className="mr-2 h-4 w-4" />
+              <span>My Orders</span>
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link to="/settings">Settings</Link>
