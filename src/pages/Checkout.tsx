@@ -5,7 +5,7 @@ import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { pageVariants } from "@/lib/animations";
 
 import { Button } from "@/components/ui/button";
@@ -26,12 +26,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   Alert, 
   AlertTitle, 
   AlertDescription 
 } from "@/components/ui/alert";
-import { Loader2, CreditCard, AlertCircle } from "lucide-react";
+import { 
+  Loader2, 
+  CreditCard, 
+  AlertCircle,
+  IndianRupee,
+  Wallet,
+  Landmark,
+  Banknote
+} from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -45,7 +54,40 @@ const shippingFormSchema = z.object({
   city: z.string().min(2, { message: "City is required" }),
   state: z.string().min(2, { message: "State is required" }),
   zipCode: z.string().min(5, { message: "Valid zip code is required" }),
+  paymentMethod: z.enum(["credit_card", "razorpay", "upi", "netbanking", "cod"], {
+    required_error: "Please select a payment method",
+  }),
 });
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { 
+      type: "spring", 
+      stiffness: 300, 
+      damping: 30 
+    } 
+  },
+  exit: { 
+    opacity: 0, 
+    y: -20, 
+    transition: { duration: 0.2 } 
+  }
+};
+
+const formItemVariants = {
+  hidden: { opacity: 0, x: -10 },
+  visible: (custom: number) => ({
+    opacity: 1,
+    x: 0,
+    transition: { 
+      delay: custom * 0.05,
+      duration: 0.3
+    }
+  })
+};
 
 export default function Checkout() {
   const { cartItems, cartTotal, clearCart } = useCart();
@@ -66,6 +108,7 @@ export default function Checkout() {
       city: "",
       state: "",
       zipCode: "",
+      paymentMethod: "credit_card",
     },
   });
 
@@ -96,7 +139,10 @@ export default function Checkout() {
           user_id: user.id,
           status: 'paid',
           total_amount: cartTotal,
-          shipping_address: data
+          shipping_address: {
+            ...data,
+            payment_method: data.paymentMethod
+          }
         })
         .select()
         .single();
@@ -139,7 +185,8 @@ export default function Checkout() {
             id: orderData.id,
             total: cartTotal,
             items: cartItems.length,
-            date: new Date().toLocaleDateString()
+            date: new Date().toLocaleDateString(),
+            paymentMethod: data.paymentMethod
           }
         } 
       });
@@ -163,6 +210,23 @@ export default function Checkout() {
     }
   };
 
+  const getPaymentIcon = (method: string) => {
+    switch (method) {
+      case "credit_card":
+        return <CreditCard className="h-4 w-4" />;
+      case "razorpay":
+        return <IndianRupee className="h-4 w-4" />;
+      case "upi":
+        return <Wallet className="h-4 w-4" />;
+      case "netbanking":
+        return <Landmark className="h-4 w-4" />;
+      case "cod":
+        return <Banknote className="h-4 w-4" />;
+      default:
+        return <CreditCard className="h-4 w-4" />;
+    }
+  };
+
   return (
     <motion.div
       className="container-custom py-12"
@@ -181,226 +245,382 @@ export default function Checkout() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Shipping Information Form */}
         <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Shipping Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="fullName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Full Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="John Doe" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input type="email" placeholder="john@example.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+          <motion.div
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <Card className="overflow-hidden border-primary/20 shadow-lg">
+              <CardHeader className="bg-primary/5">
+                <CardTitle>Shipping & Payment Information</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <motion.div custom={0} variants={formItemVariants} initial="hidden" animate="visible">
+                        <FormField
+                          control={form.control}
+                          name="fullName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Full Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="John Doe" {...field} className="transition-all duration-300 focus:ring-2 focus:ring-primary/40" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </motion.div>
+                      
+                      <motion.div custom={1} variants={formItemVariants} initial="hidden" animate="visible">
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <Input type="email" placeholder="john@example.com" {...field} className="transition-all duration-300 focus:ring-2 focus:ring-primary/40" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </motion.div>
+                    </div>
 
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="+1 (555) 123-4567" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                    <motion.div custom={2} variants={formItemVariants} initial="hidden" animate="visible">
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Phone Number</FormLabel>
+                            <FormControl>
+                              <Input placeholder="+1 (555) 123-4567" {...field} className="transition-all duration-300 focus:ring-2 focus:ring-primary/40" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </motion.div>
+
+                    <motion.div custom={3} variants={formItemVariants} initial="hidden" animate="visible">
+                      <FormField
+                        control={form.control}
+                        name="address"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Address</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="123 Main St, Apt 4B" {...field} className="transition-all duration-300 focus:ring-2 focus:ring-primary/40" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </motion.div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <motion.div custom={4} variants={formItemVariants} initial="hidden" animate="visible">
+                        <FormField
+                          control={form.control}
+                          name="city"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>City</FormLabel>
+                              <FormControl>
+                                <Input placeholder="New York" {...field} className="transition-all duration-300 focus:ring-2 focus:ring-primary/40" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </motion.div>
+                      
+                      <motion.div custom={5} variants={formItemVariants} initial="hidden" animate="visible">
+                        <FormField
+                          control={form.control}
+                          name="state"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>State</FormLabel>
+                              <FormControl>
+                                <Input placeholder="NY" {...field} className="transition-all duration-300 focus:ring-2 focus:ring-primary/40" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </motion.div>
+                      
+                      <motion.div custom={6} variants={formItemVariants} initial="hidden" animate="visible">
+                        <FormField
+                          control={form.control}
+                          name="zipCode"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Zip Code</FormLabel>
+                              <FormControl>
+                                <Input placeholder="10001" {...field} className="transition-all duration-300 focus:ring-2 focus:ring-primary/40" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </motion.div>
+                    </div>
+
+                    <motion.div custom={7} variants={formItemVariants} initial="hidden" animate="visible">
+                      <FormField
+                        control={form.control}
+                        name="paymentMethod"
+                        render={({ field }) => (
+                          <FormItem className="space-y-3">
+                            <FormLabel>Payment Method</FormLabel>
+                            <FormControl>
+                              <RadioGroup
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                              >
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="credit_card" />
+                                  </FormControl>
+                                  <div className="flex items-center gap-2 p-2 w-full border rounded-md bg-background/50 cursor-pointer hover:bg-background/80 transition-colors">
+                                    <CreditCard className="h-4 w-4 text-primary" />
+                                    <FormLabel className="cursor-pointer font-medium">Credit Card</FormLabel>
+                                  </div>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="razorpay" />
+                                  </FormControl>
+                                  <div className="flex items-center gap-2 p-2 w-full border rounded-md bg-background/50 cursor-pointer hover:bg-background/80 transition-colors">
+                                    <IndianRupee className="h-4 w-4 text-primary" />
+                                    <FormLabel className="cursor-pointer font-medium">Razorpay</FormLabel>
+                                  </div>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="upi" />
+                                  </FormControl>
+                                  <div className="flex items-center gap-2 p-2 w-full border rounded-md bg-background/50 cursor-pointer hover:bg-background/80 transition-colors">
+                                    <Wallet className="h-4 w-4 text-primary" />
+                                    <FormLabel className="cursor-pointer font-medium">UPI</FormLabel>
+                                  </div>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="netbanking" />
+                                  </FormControl>
+                                  <div className="flex items-center gap-2 p-2 w-full border rounded-md bg-background/50 cursor-pointer hover:bg-background/80 transition-colors">
+                                    <Landmark className="h-4 w-4 text-primary" />
+                                    <FormLabel className="cursor-pointer font-medium">Net Banking</FormLabel>
+                                  </div>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="cod" />
+                                  </FormControl>
+                                  <div className="flex items-center gap-2 p-2 w-full border rounded-md bg-background/50 cursor-pointer hover:bg-background/80 transition-colors">
+                                    <Banknote className="h-4 w-4 text-primary" />
+                                    <FormLabel className="cursor-pointer font-medium">Cash on Delivery</FormLabel>
+                                  </div>
+                                </FormItem>
+                              </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </motion.div>
+
+                    <AnimatePresence>
+                      {form.watch("paymentMethod") === "credit_card" && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="overflow-hidden"
+                        >
+                          <Card className="bg-muted/40 border-dashed">
+                            <CardHeader className="pb-2">
+                              <CardTitle className="flex items-center gap-2 text-base font-medium">
+                                <CreditCard className="h-4 w-4" />
+                                Payment Information
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-muted-foreground mb-4">
+                                This is a demo application. No real payment will be processed.
+                              </p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                  <FormLabel>Card Number</FormLabel>
+                                  <Input disabled placeholder="4242 4242 4242 4242" className="bg-background/50" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <FormLabel>Expiry</FormLabel>
+                                    <Input disabled placeholder="MM/YY" className="bg-background/50" />
+                                  </div>
+                                  <div>
+                                    <FormLabel>CVV</FormLabel>
+                                    <Input disabled placeholder="123" className="bg-background/50" />
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {checkoutError && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                      >
+                        <Alert variant="destructive">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertTitle>Error</AlertTitle>
+                          <AlertDescription>
+                            {checkoutError}
+                          </AlertDescription>
+                        </Alert>
+                      </motion.div>
                     )}
-                  />
 
-                  <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Address</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="123 Main St, Apt 4B" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="city"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>City</FormLabel>
-                          <FormControl>
-                            <Input placeholder="New York" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="state"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>State</FormLabel>
-                          <FormControl>
-                            <Input placeholder="NY" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="zipCode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Zip Code</FormLabel>
-                          <FormControl>
-                            <Input placeholder="10001" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <Card className="bg-muted/40 border-dashed">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="flex items-center gap-2 text-base font-medium">
-                        <CreditCard className="h-4 w-4" />
-                        Payment Information
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        This is a demo application. No real payment will be processed.
-                      </p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <FormLabel>Card Number</FormLabel>
-                          <Input disabled placeholder="4242 4242 4242 4242" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <FormLabel>Expiry</FormLabel>
-                            <Input disabled placeholder="MM/YY" />
-                          </div>
-                          <div>
-                            <FormLabel>CVV</FormLabel>
-                            <Input disabled placeholder="123" />
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {checkoutError && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Error</AlertTitle>
-                      <AlertDescription>
-                        {checkoutError}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  <div className="flex justify-between pt-4">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => navigate('/cart')}
-                    >
-                      Back to Cart
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={isProcessing || cartItems.length === 0}
-                    >
-                      {isProcessing ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        'Place Order'
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
+                    <div className="flex justify-between pt-4">
+                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => navigate('/cart')}
+                          className="transition-all duration-300"
+                        >
+                          Back to Cart
+                        </Button>
+                      </motion.div>
+                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <Button 
+                          type="submit" 
+                          disabled={isProcessing || cartItems.length === 0}
+                          className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-md transition-all duration-300 hover:shadow-lg"
+                        >
+                          {isProcessing ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            'Place Order'
+                          )}
+                        </Button>
+                      </motion.div>
+                    </div>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {/* Order Summary */}
         <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                {cartItems.map((item) => (
-                  <div key={item.id} className="flex justify-between text-sm py-2">
-                    <span className="flex-1">
-                      {item.products.name} × {item.quantity}
-                    </span>
-                    <span className="font-medium">
-                      ₹{(item.products.price * item.quantity).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              
-              <Separator />
-              
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span>₹{cartTotal.toFixed(2)}</span>
+          <motion.div
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="border-primary/20 shadow-lg sticky top-20">
+              <CardHeader className="bg-primary/5">
+                <CardTitle>Order Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 p-6">
+                <div className="space-y-2">
+                  <AnimatePresence>
+                    {cartItems.map((item, index) => (
+                      <motion.div 
+                        key={item.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ 
+                          opacity: 1, 
+                          y: 0,
+                          transition: { delay: 0.1 + (index * 0.05) }
+                        }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex justify-between text-sm py-2 border-b last:border-b-0 group"
+                      >
+                        <span className="flex-1 group-hover:text-primary transition-colors">
+                          {item.products.name} × {item.quantity}
+                        </span>
+                        <span className="font-medium">
+                          ₹{(item.products.price * item.quantity).toFixed(2)}
+                        </span>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Shipping</span>
-                  <span>Free</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tax</span>
-                  <span>Included</span>
-                </div>
+                
                 <Separator />
-                <div className="flex justify-between font-medium text-lg pt-2">
-                  <span>Total</span>
-                  <span>₹{cartTotal.toFixed(2)}</span>
+                
+                <div className="space-y-2">
+                  <motion.div 
+                    className="flex justify-between text-sm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1, transition: { delay: 0.3 } }}
+                  >
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>₹{cartTotal.toFixed(2)}</span>
+                  </motion.div>
+                  <motion.div 
+                    className="flex justify-between text-sm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1, transition: { delay: 0.4 } }}
+                  >
+                    <span className="text-muted-foreground">Shipping</span>
+                    <span>Free</span>
+                  </motion.div>
+                  <motion.div 
+                    className="flex justify-between text-sm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1, transition: { delay: 0.5 } }}
+                  >
+                    <span className="text-muted-foreground">Tax</span>
+                    <span>Included</span>
+                  </motion.div>
+                  <Separator />
+                  <motion.div 
+                    className="flex justify-between font-medium text-lg pt-2"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ 
+                      opacity: 1, 
+                      scale: 1,
+                      transition: { 
+                        delay: 0.6,
+                        type: "spring",
+                        stiffness: 300
+                      } 
+                    }}
+                    whileHover={{ scale: 1.03 }}
+                  >
+                    <span>Total</span>
+                    <span className="text-primary font-bold">₹{cartTotal.toFixed(2)}</span>
+                  </motion.div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </div>
     </motion.div>
