@@ -23,6 +23,7 @@ import {
   Loader2,
   ArrowLeft,
   AlertCircle,
+  ShoppingCart, // Added missing import
 } from "lucide-react";
 import { OrderConfirmationModal } from "@/components/order/OrderConfirmationModal";
 import { motion } from "framer-motion";
