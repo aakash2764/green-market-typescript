@@ -43,15 +43,6 @@ export function DesktopUserMenu({ isLoggedIn, onLogout }: DesktopUserMenuProps) 
           <DropdownMenuItem asChild>
             <Link to="/profile">Profile</Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link to="/orders" className="flex items-center">
-              <Package className="mr-2 h-4 w-4" />
-              <span>My Orders</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link to="/settings">Settings</Link>
-          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={onLogout} className="text-destructive focus:text-destructive">
             <LogOut className="mr-2 h-4 w-4" />

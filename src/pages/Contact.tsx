@@ -72,7 +72,7 @@ export default function Contact() {
               <Phone className="h-5 w-5 mr-3 mt-0.5 text-primary" />
               <div>
                 <h3 className="font-medium">Phone</h3>
-                <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                <p className="text-muted-foreground">+91 9840716073</p>
               </div>
             </div>
             
@@ -81,8 +81,10 @@ export default function Contact() {
               <div>
                 <h3 className="font-medium">Address</h3>
                 <p className="text-muted-foreground">
-                  123 Eco Street, Green City<br />
-                  CA 94123, United States
+                No. 24, 3rd Cross Street,<br />
+                Anna Nagar East,<br />
+                Chennai – 600102,<br />
+                Tamil Nadu, India.<br />
                 </p>
               </div>
             </div>
@@ -171,10 +173,13 @@ export default function Contact() {
       
       <div className="bg-muted p-4 rounded-lg">
         <h2 className="text-xl font-semibold mb-4 text-center">Our Location</h2>
-        <div className="rounded-lg overflow-hidden h-[400px] bg-muted">
-          {/* Placeholder for a map - in a real app you'd use Google Maps or similar */}
-          <div className="w-full h-full flex items-center justify-center bg-green-100 dark:bg-green-900/30">
-            <MapPin className="h-12 w-12 text-primary opacity-50" />
+        <div className="rounded-lg overflow-hidden h-[600px] bg-muted">
+          <div className="relative w-full h-full">
+            <img
+              src="image.png"
+              alt="Anna Nagar Location"
+              className="absolute top-0 left-[-10px] w-[calc(100%+10px)] h-full object-cover"
+            />
           </div>
         </div>
       </div>

@@ -14,17 +14,18 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/lib/supabase";
 import { fetchUserOrders } from "@/services/supabaseService";
 import { Json } from "@/integrations/supabase/types";
 import { pageVariants, cardVariants, itemVariants } from "@/lib/animations";
 
+// Update the interfaces to match the order_items table structure
 interface OrderItem {
-  quantity: number;
-  unit_price: number;
-  product_id: string;
-  // Remove created_at since it's not in the API response
+  orderitems: string;            // The orderitems uuid
+  order_id: string;      // The uuid from orders table
+  product_id: string;    // The uuid from products table
+  quantity: number;      // int4 value
+  unit_price: number;    // numeric value
+  created_at: string;    // timestamptz value
   products: {
     name: string;
     image_url: string;
@@ -45,10 +46,17 @@ interface Order {
   order_items: OrderItem[]; 
 }
 
+interface OrderGroup {
+  id: string;
+  status: string;
+  created_at: string;
+  items: OrderItem[];
+}
+
 export default function Orders() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,18 +70,7 @@ export default function Orders() {
       try {
         setLoading(true);
         setError(null);
-        console.log('Loading orders for user:', user.id);
         const fetchedOrders = await fetchUserOrders(user.id);
-        
-        // Add more detailed logging
-        if (fetchedOrders && fetchedOrders.length > 0) {
-          console.log('Complete first order data:', fetchedOrders[0]);
-          console.log('Order items:', fetchedOrders[0].order_items);
-          if (fetchedOrders[0].order_items && fetchedOrders[0].order_items.length > 0) {
-            console.log('First item in first order:', fetchedOrders[0].order_items[0]);
-          }
-        }
-        
         setOrders(fetchedOrders || []);
       } catch (err) {
         console.error('Error loading orders:', err);
@@ -239,10 +236,7 @@ export default function Orders() {
           variants={itemVariants}
         >
           <h1 className="text-3xl font-bold">My Orders</h1>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button variant="outline" size="sm" asChild>
               <Link to="/products">
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -251,7 +245,7 @@ export default function Orders() {
             </Button>
           </motion.div>
         </motion.div>
-        
+
         {orders.length === 0 ? (
           <motion.div
             variants={cardVariants}
@@ -289,7 +283,12 @@ export default function Orders() {
                     <CardHeader>
                       <CardTitle className="flex justify-between items-center">
                         <div>
-                          <span className="text-lg">Order #{order.id.slice(0, 8)}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg">Order #{order.id.slice(0, 8)}</span>
+                            <span className={`text-sm px-2 py-1 rounded-full ${getStatusColor(order.status)}`}>
+                              {order.status}
+                            </span>
+                          </div>
                           <div className="flex items-center gap-3 mt-1">
                             <span className="flex items-center text-sm text-muted-foreground">
                               <Calendar className="h-3.5 w-3.5 mr-1" />
@@ -301,17 +300,14 @@ export default function Orders() {
                             </span>
                           </div>
                         </div>
-                        <Badge className={`text-xs px-3 py-1 rounded-full capitalize ${getStatusColor(order.status)}`}>
-                          {order.status || 'pending'}
-                        </Badge>
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
                         <div className="border rounded-lg divide-y">
-                          {order.order_items?.map((item) => ( // Changed from orderitems to order_items
+                          {order.items.map((item) => (
                             <motion.div
-                              key={`${item.product_id}-${item.quantity}`}
+                              key={item.orderitems}
                               className="flex items-center p-4 gap-4"
                               whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
                             >
@@ -342,27 +338,11 @@ export default function Orders() {
                             </motion.div>
                           ))}
                         </div>
-                        <div className="flex flex-col gap-4">
-                          <div className="flex justify-between items-start">
-                            <div className="text-sm">
-                              <p className="text-muted-foreground">Payment Method</p>
-                              <p className="font-medium capitalize">{order.payment_method || 'Not specified'}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm text-muted-foreground">Shipping Address</p>
-                              <p className="font-medium">
-                                {typeof order.shipping_address === 'string' 
-                                  ? order.shipping_address 
-                                  : JSON.stringify(order.shipping_address)}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex justify-end">
-                            <div className="text-right">
-                              <p className="text-sm text-muted-foreground">Total Amount</p>
-                              <p className="text-lg font-medium">₹{roundUpTotal(order.total_amount)}</p>
-                            </div>
-                          </div>
+                        <div className="flex justify-end">
+                          <p className="font-medium text-lg">
+                            Total: ₹{order.items.reduce((sum, item) => 
+                              sum + (item.unit_price * item.quantity), 0).toFixed(2)}
+                          </p>
                         </div>
                       </div>
                     </CardContent>

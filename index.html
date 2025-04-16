@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Green Market</title>
     <meta name="description" content="A Simple Green Market Website" />
-    <meta name="author" content="Lovable" />
 
     <meta property="og:title" content="Green Market" />
     <meta property="og:description" content="A Simple Green Market Website" />
@@ -13,12 +12,20 @@
     <meta property="og:image" content="logo.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="logo.png" />
+    <link rel="icon" href="logo.png" type="image/png" />
+    <style>
+      .logo {
+        width: 300px; /* Increase the width to 300px */
+        height: auto; /* Maintain aspect ratio */
+      }
+    </style>
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <img src="logo.png" alt="Green Market Logo" class="logo" />
+    </div>
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>

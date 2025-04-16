@@ -465,29 +465,51 @@ export async function createOrder(shippingAddress: any) {
 // Get user's orders with items and product details
 export async function fetchUserOrders(userId: string) {
   try {
-    const { data: orders, error } = await supabase
+    // First get all orders for this user with status
+    const { data: orders, error: ordersError } = await supabase
       .from('orders')
+      .select('id, status, created_at')
+      .eq('user_id', userId);
+
+    if (ordersError) {
+      console.error('Error fetching orders:', ordersError);
+      throw ordersError;
+    }
+
+    if (!orders || orders.length === 0) {
+      return [];
+    }
+
+    // Get order items for these orders
+    const { data: orderItems, error: itemsError } = await supabase
+      .from('order_items')
       .select(`
-        *,
-        order_items:order_items (
-          *,
-          products:products (
-            name,
-            image_url
-          )
+        orderitems,
+        order_id,
+        product_id,
+        quantity,
+        unit_price,
+        created_at,
+        products (
+          name,
+          image_url
         )
       `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .in('order_id', orders.map(order => order.id));
 
-    if (error) throw error;
-    
-    console.log('Raw data:', orders);
-    console.log('First order if any:', orders?.[0]);
-    
-    return orders;
+    if (itemsError) {
+      throw itemsError;
+    }
+
+    // Group items by order_id and include order status
+    const groupedOrders = orders.map(order => ({
+      ...order,
+      items: orderItems?.filter(item => item.order_id === order.id) || []
+    }));
+
+    return groupedOrders;
   } catch (error) {
-    console.error('Error fetching orders:', error);
+    console.error('Error in fetchUserOrders:', error);
     throw error;
   }
 }

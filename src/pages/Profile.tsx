@@ -47,37 +47,68 @@ export default function Profile() {
     }
 
     async function loadProfile() {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        console.error('Error loading profile:', error);
-        return;
-      }
-
-      if (data) {
-        setProfile({
-          ...data,
-          id: user.id,
-          email: user.email || '',
-        });
-      } else {
-        const { error: insertError } = await supabase
+      try {
+        const { data, error } = await supabase
           .from('profiles')
-          .insert({
-            id: user.id,
-            email: user.email,
-            full_name: '',
-            phone: '',
-            address: '',
-          });
+          .select('*')
+          .eq('id', user.id)
+          .single();
 
-        if (insertError) {
-          console.error('Error creating profile:', insertError);
+        if (error) {
+          console.error('Error loading profile:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load profile data.",
+            variant: "destructive",
+          });
+          return;
         }
+
+        if (data) {
+          setProfile({
+            ...data,
+            id: user.id,
+            email: user.email || '',
+          });
+        } else {
+          // Create new profile if it doesn't exist
+          const { data: newProfile, error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: user.id,
+              email: user.email,
+              full_name: '',
+              phone: '',
+              address: '',
+            })
+            .select()
+            .single();
+
+          if (insertError) {
+            console.error('Error creating profile:', insertError);
+            toast({
+              title: "Error",
+              description: "Failed to create profile.",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          if (newProfile) {
+            setProfile({
+              ...newProfile,
+              id: user.id,
+              email: user.email || '',
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Unexpected error:', error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred.",
+          variant: "destructive",
+        });
       }
     }
 
@@ -88,41 +119,56 @@ export default function Profile() {
     if (!user) return;
 
     try {
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          full_name: profile.full_name,
-          phone: profile.phone,
-          address: profile.address,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
-
-      if (updateError) {
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            id: user.id,
-            full_name: profile.full_name,
-            phone: profile.phone,
-            address: profile.address,
-            email: user.email,
-            updated_at: new Date().toISOString(),
-          });
-
-        if (insertError) throw insertError;
+      // Validate required fields
+      if (!profile.full_name.trim()) {
+        toast({
+          title: "Error",
+          description: "Full name is required.",
+          variant: "destructive",
+        });
+        return;
       }
 
-      toast({
-        title: "Success",
-        description: "Profile updated successfully.",
-      });
-      setIsEditing(false);
+      const { data, error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: profile.full_name.trim(),
+          phone: profile.phone.trim(),
+          address: profile.address.trim(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('Error updating profile:', updateError);
+        toast({
+          title: "Error",
+          description: "Failed to update profile. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data) {
+        setProfile({
+          ...data,
+          id: user.id,
+          email: user.email || '',
+        });
+        
+        toast({
+          title: "Success",
+          description: "Profile updated successfully.",
+        });
+        setIsEditing(false);
+      }
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('Unexpected error:', error);
       toast({
         title: "Error",
-        description: "Failed to update profile. Please try again.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     }
