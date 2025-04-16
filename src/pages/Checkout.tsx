@@ -54,7 +54,7 @@ const shippingFormSchema = z.object({
   city: z.string().min(2, { message: "City is required" }),
   state: z.string().min(2, { message: "State is required" }),
   zipCode: z.string().min(5, { message: "Valid zip code is required" }),
-  paymentMethod: z.enum(["credit_card", "razorpay", "upi", "netbanking", "cod"], {
+  paymentMethod: z.enum(["credit_card", "upi", "cod"], {
     required_error: "Please select a payment method",
   }),
 });
@@ -122,62 +122,118 @@ export default function Checkout() {
   const onSubmit = async (data: z.infer<typeof shippingFormSchema>) => {
     setIsProcessing(true);
     setCheckoutError(null);
-
+  
     try {
       if (!user) {
         navigate('/login', { state: { from: '/checkout' } });
         return;
       }
-
-      // In a real app, you would process payment with Stripe/Razorpay here
-      // For now, we'll simulate a successful payment
-
-      // Create order in the database
+  
+      // First check if products are in stock
+      for (const item of cartItems) {
+        const { data: productData, error: stockCheckError } = await supabase
+          .from('products')
+          .select('stock')
+          .eq('id', item.products.id)
+          .single();
+  
+        if (stockCheckError) {
+          console.error('Stock check error:', stockCheckError);
+          throw new Error(`Failed to check product stock: ${stockCheckError.message}`);
+        }
+  
+        if (!productData) {
+          throw new Error(`Product not found: ${item.products.name}`);
+        }
+  
+        if (productData.stock < item.quantity) {
+          throw new Error(`${item.products.name} is out of stock. Only ${productData.stock} available.`);
+        }
+      }
+  
+      console.log("Attempting to create order with data:", {
+        user_id: user.id,
+        status: data.paymentMethod === 'cod' ? 'pending' : 'confirmed',
+        total_amount: cartTotal,
+        shipping_address: {
+          fullName: data.fullName,
+          email: data.email,
+          phone: data.phone,
+          address: data.address,
+          city: data.city,
+          state: data.state,
+          zipCode: data.zipCode
+        },
+        payment_method: data.paymentMethod
+      });
+      
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
           user_id: user.id,
-          status: 'paid',
+          status: data.paymentMethod === 'cod' ? 'pending' : 'confirmed',
           total_amount: cartTotal,
           shipping_address: {
-            ...data,
-            payment_method: data.paymentMethod
-          }
+            fullName: data.fullName,
+            email: data.email,
+            phone: data.phone,
+            address: data.address,
+            city: data.city,
+            state: data.state,
+            zipCode: data.zipCode
+          },
+          payment_method: data.paymentMethod
         })
         .select()
         .single();
-
-      if (orderError) throw orderError;
-
+      
+      console.log("Order creation response:", { orderData, orderError });
+      
+      if (orderError) {
+        console.error('Order creation error details:', orderError);
+        throw new Error(`Failed to create order: ${orderError.message}`);
+      }
+  
+      if (!orderData) {
+        throw new Error('Order was created but no data was returned');
+      }
+  
       // Create order items
-      const orderItems = [];
+      const orderItemsData = cartItems.map(item => ({
+        order_id: orderData.id,
+        product_id: item.products.id,
+        quantity: item.quantity,
+        unit_price: item.products.price
+      }));
+  
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItemsData);
+  
+      if (itemsError) {
+        console.error('Order items creation error:', itemsError);
+        throw new Error(`Failed to create order items: ${itemsError.message}`);
+      }
+  
+      // Update product stock
       for (const item of cartItems) {
-        const { data: orderItemData, error: orderItemError } = await supabase
-          .from('order_items')
-          .insert({
-            order_id: orderData.id,
-            product_id: item.id,
-            quantity: item.quantity,
-            unit_price: item.products.price
-          })
-          .select()
-          .single();
-
-        if (orderItemError) throw orderItemError;
-        orderItems.push(orderItemData);
-
-        // Update product stock
         const { error: stockError } = await supabase.rpc(
           'decrement_stock',
-          { row_id: item.id, amount: item.quantity }
+          { 
+            p_id: item.products.id, 
+            qty: item.quantity 
+          }
         );
-
-        if (stockError) throw stockError;
+  
+        if (stockError) {
+          console.error('Stock update error:', stockError);
+          throw new Error(`Failed to update product stock: ${stockError.message}`);
+        }
       }
-
+  
       // Clear the cart
       clearCart();
-
+  
       // Navigate to order confirmation
       navigate(`/order/confirm`, { 
         state: { 
@@ -186,23 +242,32 @@ export default function Checkout() {
             total: cartTotal,
             items: cartItems.length,
             date: new Date().toLocaleDateString(),
-            paymentMethod: data.paymentMethod
+            paymentMethod: data.paymentMethod,
+            status: data.paymentMethod === 'cod' ? 'pending' : 'confirmed'
           }
         } 
       });
-
+  
       // Success toast
       toast({
         title: "Order Placed Successfully",
-        description: "Your order has been confirmed and is being processed.",
+        description: data.paymentMethod === 'cod' 
+          ? "Your order has been placed and will be confirmed upon delivery."
+          : "Your order has been confirmed and is being processed.",
       });
-
+  
     } catch (error) {
       console.error('Checkout error:', error);
-      setCheckoutError('Failed to process your order. Please try again.');
+      let errorMessage = 'Failed to process your order. Please try again.';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      setCheckoutError(errorMessage);
       toast({
         title: "Error",
-        description: "Failed to process your order. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -398,29 +463,11 @@ export default function Checkout() {
                                 </FormItem>
                                 <FormItem className="flex items-center space-x-3 space-y-0">
                                   <FormControl>
-                                    <RadioGroupItem value="razorpay" />
-                                  </FormControl>
-                                  <div className="flex items-center gap-2 p-2 w-full border rounded-md bg-background/50 cursor-pointer hover:bg-background/80 transition-colors">
-                                    <IndianRupee className="h-4 w-4 text-primary" />
-                                    <FormLabel className="cursor-pointer font-medium">Razorpay</FormLabel>
-                                  </div>
-                                </FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                  <FormControl>
                                     <RadioGroupItem value="upi" />
                                   </FormControl>
                                   <div className="flex items-center gap-2 p-2 w-full border rounded-md bg-background/50 cursor-pointer hover:bg-background/80 transition-colors">
                                     <Wallet className="h-4 w-4 text-primary" />
                                     <FormLabel className="cursor-pointer font-medium">UPI</FormLabel>
-                                  </div>
-                                </FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                  <FormControl>
-                                    <RadioGroupItem value="netbanking" />
-                                  </FormControl>
-                                  <div className="flex items-center gap-2 p-2 w-full border rounded-md bg-background/50 cursor-pointer hover:bg-background/80 transition-colors">
-                                    <Landmark className="h-4 w-4 text-primary" />
-                                    <FormLabel className="cursor-pointer font-medium">Net Banking</FormLabel>
                                   </div>
                                 </FormItem>
                                 <FormItem className="flex items-center space-x-3 space-y-0">

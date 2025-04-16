@@ -17,7 +17,15 @@ interface Product {
 interface CartItem {
   id: string;
   quantity: number;
-  products: Product;
+  products: {
+    id: string;
+    name: string;
+    price: number;
+    description: string;
+    image_url: string;
+    category: string;
+    stock: number;
+  };
 }
 
 interface CartContextType {

@@ -408,8 +408,11 @@ export async function createOrder(shippingAddress: any) {
     .from('orders')
     .insert({
       user_id: user.id,
+      status: 'pending',
       total_amount: totalAmount,
-      shipping_address: shippingAddress
+      shipping_address: shippingAddress,
+      payment_method: '', // 添加默认支付方法
+      updated_at: new Date().toISOString() // 添加更新时间
     })
     .select()
     .single();
@@ -438,7 +441,6 @@ export async function createOrder(shippingAddress: any) {
     
   if (itemsError) {
     console.error('Error adding order items:', itemsError);
-    // Try to clean up the order
     await supabase.from('orders').delete().eq('id', order.id);
     
     toast({
@@ -449,7 +451,6 @@ export async function createOrder(shippingAddress: any) {
     return null;
   }
   
-  // Clear the cart
   await clearCart();
   
   toast({
@@ -460,19 +461,29 @@ export async function createOrder(shippingAddress: any) {
   return order;
 }
 
-// Get user's orders
-export async function getUserOrders() {
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) {
-    throw new Error('You must be logged in to view orders');
-  }
+// Get user's orders with items and product details
+export async function fetchUserOrders(userId: string) {
+  console.log('Fetching orders for user:', userId);
   
   const { data, error } = await supabase
     .from('orders')
-    .select('*')
-    .eq('user_id', user.id)
+    .select(`
+      *,
+      order_items (
+        quantity,
+        unit_price,
+        product_id,
+        products (
+          name,
+          image_url
+        )
+      )
+    `)
+    .eq('user_id', userId)
     .order('created_at', { ascending: false });
+    
+  console.log('Raw data:', data);
+  console.log('Error if any:', error);
     
   if (error) {
     console.error('Error fetching orders:', error);
@@ -484,7 +495,26 @@ export async function getUserOrders() {
     return [];
   }
   
-  return data;
+  // Transform the data to match the Order interface
+  const transformedData = data?.map(order => ({
+    id: order.id,
+    user_id: order.user_id,
+    status: order.status || 'pending',
+    total_amount: order.total_amount,
+    shipping_address: order.shipping_address,
+    payment_method: order.payment_method || '',
+    created_at: order.created_at,
+    updated_at: order.updated_at || order.created_at,
+    order_items: order.order_items?.map(item => ({
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      product_id: item.product_id,
+      products: item.products
+    })) || []
+  }));
+
+  console.log('Transformed data:', transformedData);
+  return transformedData;
 }
 
 // Get order details
@@ -603,26 +633,5 @@ export async function updateUserProfile(profile: any) {
     description: "Your profile has been updated successfully",
   });
   
-  return data;
-}
-
-export async function fetchUserOrders(userId: string) {
-  const { data, error } = await supabase
-    .from('orders')
-    .select(`
-      *,
-      order_items (
-        *,
-        product:products (*)
-      )
-    `)
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching orders:', error);
-    throw error;
-  }
-
   return data;
 }

@@ -21,26 +21,28 @@ import { Json } from "@/integrations/supabase/types";
 import { pageVariants, cardVariants, itemVariants } from "@/lib/animations";
 
 interface OrderItem {
-  id: string;
-  order_id: string;
-  product_id: string;
   quantity: number;
   unit_price: number;
-  created_at: string;
-  product: {
+  product_id: string;
+  // Remove created_at since it's not in the API response
+  products: {
     name: string;
     image_url: string;
   };
 }
+
+
 
 interface Order {
   id: string;
   user_id: string;
   status: string;
   total_amount: number;
-  shipping_address: Json; // Updated to match Json type from Supabase
+  shipping_address: Json;
+  payment_method?: string; // Make optional with '?'
   created_at: string;
-  order_items: OrderItem[];
+  updated_at?: string; // Make optional with '?'
+  order_items: OrderItem[]; 
 }
 
 export default function Orders() {
@@ -60,8 +62,12 @@ export default function Orders() {
       try {
         setLoading(true);
         setError(null);
+        console.log('Loading orders for user:', user.id);
         const fetchedOrders = await fetchUserOrders(user.id);
-        setOrders(fetchedOrders || []);
+        console.log('Fetched orders:', fetchedOrders);    
+        
+        
+        setOrders(fetchedOrders);
       } catch (err) {
         console.error('Error loading orders:', err);
         setError('Failed to load your orders. Please try again later.');
@@ -271,8 +277,6 @@ export default function Orders() {
                   animate="visible"
                   exit="exit"
                   custom={index}
-                  whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
-                  transition={{ duration: 0.3 }}
                 >
                   <Card className="overflow-hidden">
                     <CardHeader>
@@ -291,24 +295,24 @@ export default function Orders() {
                           </div>
                         </div>
                         <Badge className={`text-xs px-3 py-1 rounded-full capitalize ${getStatusColor(order.status)}`}>
-                          {order.status}
+                          {order.status || 'pending'}
                         </Badge>
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
                         <div className="border rounded-lg divide-y">
-                          {order.order_items.map((item) => (
+                          {order.order_items?.map((item) => ( // Changed from orderitems to order_items
                             <motion.div
-                              key={item.id}
+                              key={`${item.product_id}-${item.quantity}`}
                               className="flex items-center p-4 gap-4"
                               whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
                             >
                               <div className="relative w-16 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
-                                {item.product?.image_url ? (
+                                {item.products?.image_url ? (
                                   <motion.img
-                                    src={item.product.image_url}
-                                    alt={item.product.name || 'Product'}
+                                    src={item.products.image_url}
+                                    alt={item.products.name || 'Product'}
                                     className="w-full h-full object-cover"
                                     whileHover={{ scale: 1.1 }}
                                     transition={{ duration: 0.3 }}
@@ -319,7 +323,7 @@ export default function Orders() {
                               </div>
                               <div className="flex-1">
                                 <p className="font-medium">
-                                  {item.product?.name || 'Product'}
+                                  {item.products?.name || 'Product'}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                   Quantity: {item.quantity} × ₹{item.unit_price.toFixed(2)}
@@ -331,25 +335,27 @@ export default function Orders() {
                             </motion.div>
                           ))}
                         </div>
-                        <div className="flex flex-col gap-2 items-end">
-                          <div className="text-right">
-                            <p className="text-sm text-muted-foreground">Shipping Address</p>
-                            <p className="font-medium">
-                              {typeof order.shipping_address === 'string' 
-                                ? order.shipping_address 
-                                : JSON.stringify(order.shipping_address)}
-                            </p>
+                        <div className="flex flex-col gap-4">
+                          <div className="flex justify-between items-start">
+                            <div className="text-sm">
+                              <p className="text-muted-foreground">Payment Method</p>
+                              <p className="font-medium capitalize">{order.payment_method || 'Not specified'}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-muted-foreground">Shipping Address</p>
+                              <p className="font-medium">
+                                {typeof order.shipping_address === 'string' 
+                                  ? order.shipping_address 
+                                  : JSON.stringify(order.shipping_address)}
+                              </p>
+                            </div>
                           </div>
-                          <motion.div 
-                            className="text-right"
-                            whileHover={{ scale: 1.05 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <p className="text-sm text-muted-foreground">Total Amount</p>
-                            <p className="text-lg font-medium">
-                              ₹{roundUpTotal(order.total_amount)}
-                            </p>
-                          </motion.div>
+                          <div className="flex justify-end">
+                            <div className="text-right">
+                              <p className="text-sm text-muted-foreground">Total Amount</p>
+                              <p className="text-lg font-medium">₹{roundUpTotal(order.total_amount)}</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </CardContent>

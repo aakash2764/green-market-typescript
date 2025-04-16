@@ -76,17 +76,16 @@ export function AnimatedProductCard({ product }: ProductCardProps) {
           </p>
           <div className="mt-auto flex items-center justify-between">
             <span className="font-bold">₹{Math.ceil(product.price)}</span>
-            <motion.div whileHover="hover" whileTap="tap" variants={cardVariants}>
-              <Button
-                size="sm"
-                disabled={isOutOfStock}
-                onClick={handleAddToCart}
-                variant={isOutOfStock ? "outline" : "default"}
-              >
-                <ShoppingCart className="h-4 w-4 mr-1" />
-                {isOutOfStock ? "Sold Out" : "Add"}
-              </Button>
-            </motion.div>
+            <Button
+              size="sm"
+              disabled={isOutOfStock}
+              onClick={handleAddToCart}
+              variant={isOutOfStock ? "outline" : "default"}
+              className="transition-transform hover:scale-105 active:scale-95"
+            >
+              <ShoppingCart className="h-4 w-4 mr-1" />
+              {isOutOfStock ? "Sold Out" : "Add"}
+            </Button>
           </div>
         </div>
       </Link>
