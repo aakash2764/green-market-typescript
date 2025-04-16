@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { fetchUserOrders } from "@/services/supabaseService";
+import { Json } from "@/integrations/supabase/types";
 
 interface OrderItem {
   id: string;
@@ -35,7 +36,7 @@ interface Order {
   user_id: string;
   status: string;
   total_amount: number;
-  shipping_address: string;
+  shipping_address: Json; // Updated to match Json type from Supabase
   created_at: string;
   order_items: OrderItem[];
 }
@@ -249,7 +250,11 @@ export default function Orders() {
                     <div className="flex flex-col gap-2 items-end">
                       <div className="text-right">
                         <p className="text-sm text-muted-foreground">Shipping Address</p>
-                        <p className="font-medium">{order.shipping_address || 'No address provided'}</p>
+                        <p className="font-medium">
+                          {typeof order.shipping_address === 'string' 
+                            ? order.shipping_address 
+                            : JSON.stringify(order.shipping_address)}
+                        </p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-muted-foreground">Total Amount</p>
