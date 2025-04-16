@@ -1,7 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import { fetchProducts } from "@/services/supabaseService";
-import { ProductCard } from "@/components/products/ProductCard";
+import { AnimatedProductCard } from "@/components/products/AnimatedProductCard";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -11,19 +13,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
+import { pageVariants, itemVariants } from "@/lib/animations";
 
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   const categoryParam = searchParams.get("category");
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       const allProducts = await fetchProducts();
       setProducts(allProducts);
+      setIsLoading(false);
     };
 
     fetchData();
@@ -62,10 +68,24 @@ export default function Products() {
   const categories = ["all", ...Array.from(new Set(products.map((product) => product.category)))];
 
   return (
-    <div className="container-custom py-12">
-      <h1 className="text-3xl font-bold mb-8">Products</h1>
+    <motion.div 
+      variants={pageVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="container-custom py-12"
+    >
+      <motion.h1 
+        variants={itemVariants}
+        className="text-3xl font-bold mb-8"
+      >
+        Products
+      </motion.h1>
 
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
+      <motion.div 
+        variants={itemVariants}
+        className="flex flex-col md:flex-row gap-4 mb-8"
+      >
         <div className="relative flex-grow">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -91,20 +111,46 @@ export default function Products() {
             </SelectContent>
           </Select>
         </div>
-      </div>
+      </motion.div>
 
-      {filteredProducts.length === 0 ? (
-        <div className="text-center py-12">
+      {isLoading ? (
+        <motion.div 
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+        >
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <motion.div
+              key={i}
+              className="product-card h-[300px] bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700"
+              variants={itemVariants}
+              animate={{
+                backgroundPosition: ["0% 0%", "100% 100%"],
+                transition: {
+                  duration: 1.5,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  ease: "linear"
+                }
+              }}
+            />
+          ))}
+        </motion.div>
+      ) : filteredProducts.length === 0 ? (
+        <motion.div 
+          variants={itemVariants}
+          className="text-center py-12"
+        >
           <h2 className="text-2xl font-medium mb-2">No products found</h2>
           <p className="text-muted-foreground">Try changing your search or filter criteria</p>
-        </div>
+        </motion.div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+        <motion.div 
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+        >
+          {filteredProducts.map((product, index) => (
+            <AnimatedProductCard key={product.id} product={product} />
           ))}
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }

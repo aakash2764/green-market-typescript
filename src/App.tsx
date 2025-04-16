@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
-import { Layout } from "@/components/layout/Layout";
+import { AnimatedLayout } from "@/components/layout/AnimatedLayout";
 
 // Pages
 import Home from "./pages/Home";
@@ -33,7 +33,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <Layout>
+              <AnimatedLayout>
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/products" element={<Products />} />
@@ -47,7 +47,7 @@ const App = () => (
                   <Route path="/orders" element={<Orders />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </Layout>
+              </AnimatedLayout>
             </BrowserRouter>
           </TooltipProvider>
         </CartProvider>

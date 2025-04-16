@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -17,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { fetchUserOrders } from "@/services/supabaseService";
 import { Json } from "@/integrations/supabase/types";
+import { pageVariants, cardVariants, itemVariants } from "@/lib/animations";
 
 interface OrderItem {
   id: string;
@@ -106,170 +108,258 @@ export default function Orders() {
     }
   };
 
+  // Round up the total amount to nearest integer
+  const roundUpTotal = (amount: number) => {
+    return Math.ceil(amount);
+  };
+
   if (loading) {
     return (
-      <div className="container-custom py-12">
+      <motion.div 
+        className="container-custom py-12"
+        variants={pageVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+      >
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">My Orders</h1>
+          <motion.h1 
+            className="text-3xl font-bold mb-8"
+            variants={itemVariants}
+          >
+            My Orders
+          </motion.h1>
           
-          <div className="space-y-6">
+          <motion.div className="space-y-6" variants={itemVariants}>
             {[1, 2].map((i) => (
-              <Card key={i} className="overflow-hidden">
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <Skeleton className="h-6 w-32" />
-                    <Skeleton className="h-6 w-24" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="border rounded-lg divide-y">
-                      {[1, 2].map((j) => (
-                        <div key={j} className="flex items-center p-4 gap-4">
-                          <Skeleton className="h-16 w-16 rounded" />
-                          <div className="flex-1">
-                            <Skeleton className="h-4 w-32 mb-2" />
-                            <Skeleton className="h-3 w-24" />
-                          </div>
-                          <Skeleton className="h-4 w-16" />
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex flex-col gap-2 items-end">
-                      <Skeleton className="h-4 w-32" />
+              <motion.div
+                key={i}
+                className="bg-gray-100 dark:bg-gray-800 overflow-hidden rounded-lg animate-pulse"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0, 
+                  transition: { 
+                    duration: 0.3, 
+                    delay: i * 0.1 
+                  } 
+                }}
+              >
+                <Card key={i} className="overflow-hidden">
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <Skeleton className="h-6 w-32" />
                       <Skeleton className="h-6 w-24" />
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="border rounded-lg divide-y">
+                        {[1, 2].map((j) => (
+                          <div key={j} className="flex items-center p-4 gap-4">
+                            <Skeleton className="h-16 w-16 rounded" />
+                            <div className="flex-1">
+                              <Skeleton className="h-4 w-32 mb-2" />
+                              <Skeleton className="h-3 w-24" />
+                            </div>
+                            <Skeleton className="h-4 w-16" />
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex flex-col gap-2 items-end">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-6 w-24" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   if (error) {
     return (
-      <div className="container-custom py-12">
+      <motion.div
+        className="container-custom py-12"
+        variants={pageVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+      >
         <div className="max-w-4xl mx-auto text-center">
-          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-          <h1 className="text-3xl font-bold mb-4">Something went wrong</h1>
-          <p className="text-muted-foreground mb-6">{error}</p>
-          <Button onClick={() => window.location.reload()}>
-            Try Again
-          </Button>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 17,
+            }}
+          >
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <h1 className="text-3xl font-bold mb-4">Something went wrong</h1>
+            <p className="text-muted-foreground mb-6">{error}</p>
+            <Button onClick={() => window.location.reload()}>
+              Try Again
+            </Button>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="container-custom py-12">
+    <motion.div
+      className="container-custom py-12"
+      variants={pageVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+    >
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <motion.div
+          className="flex items-center justify-between mb-8"
+          variants={itemVariants}
+        >
           <h1 className="text-3xl font-bold">My Orders</h1>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/products">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Continue Shopping
-            </Link>
-          </Button>
-        </div>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/products">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Continue Shopping
+              </Link>
+            </Button>
+          </motion.div>
+        </motion.div>
         
         {orders.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center text-center py-12">
-              <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
-              <h2 className="text-xl font-semibold mb-2">No orders found</h2>
-              <p className="text-muted-foreground mb-6">
-                You haven't placed any orders yet.
-              </p>
-              <Button asChild>
-                <Link to="/products">Browse Products</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <motion.div
+            variants={cardVariants}
+            whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card>
+              <CardContent className="flex flex-col items-center text-center py-12">
+                <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
+                <h2 className="text-xl font-semibold mb-2">No orders found</h2>
+                <p className="text-muted-foreground mb-6">
+                  You haven't placed any orders yet.
+                </p>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button asChild>
+                    <Link to="/products">Browse Products</Link>
+                  </Button>
+                </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
         ) : (
-          <div className="space-y-6">
-            {orders.map((order) => (
-              <Card key={order.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex justify-between items-center">
-                    <div>
-                      <span className="text-lg">Order #{order.id.slice(0, 8)}</span>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="flex items-center text-sm text-muted-foreground">
-                          <Calendar className="h-3.5 w-3.5 mr-1" />
-                          {formatDate(order.created_at)}
-                        </span>
-                        <span className="flex items-center text-sm text-muted-foreground">
-                          <Clock className="h-3.5 w-3.5 mr-1" />
-                          {formatTime(order.created_at)}
-                        </span>
-                      </div>
-                    </div>
-                    <Badge className={`text-xs px-3 py-1 rounded-full capitalize ${getStatusColor(order.status)}`}>
-                      {order.status}
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="border rounded-lg divide-y">
-                      {order.order_items.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center p-4 gap-4"
-                        >
-                          <div className="relative w-16 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
-                            {item.product?.image_url ? (
-                              <img
-                                src={item.product.image_url}
-                                alt={item.product.name || 'Product'}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <Package className="w-8 h-8 absolute inset-0 m-auto text-muted-foreground" />
-                            )}
+          <motion.div className="space-y-6">
+            <AnimatePresence>
+              {orders.map((order, index) => (
+                <motion.div
+                  key={order.id}
+                  variants={itemVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  custom={index}
+                  whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="overflow-hidden">
+                    <CardHeader>
+                      <CardTitle className="flex justify-between items-center">
+                        <div>
+                          <span className="text-lg">Order #{order.id.slice(0, 8)}</span>
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="flex items-center text-sm text-muted-foreground">
+                              <Calendar className="h-3.5 w-3.5 mr-1" />
+                              {formatDate(order.created_at)}
+                            </span>
+                            <span className="flex items-center text-sm text-muted-foreground">
+                              <Clock className="h-3.5 w-3.5 mr-1" />
+                              {formatTime(order.created_at)}
+                            </span>
                           </div>
-                          <div className="flex-1">
-                            <p className="font-medium">
-                              {item.product?.name || 'Product'}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              Quantity: {item.quantity} × ₹{item.unit_price.toFixed(2)}
-                            </p>
-                          </div>
-                          <p className="font-medium">
-                            ₹{(item.unit_price * item.quantity).toFixed(2)}
-                          </p>
                         </div>
-                      ))}
-                    </div>
-                    <div className="flex flex-col gap-2 items-end">
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Shipping Address</p>
-                        <p className="font-medium">
-                          {typeof order.shipping_address === 'string' 
-                            ? order.shipping_address 
-                            : JSON.stringify(order.shipping_address)}
-                        </p>
+                        <Badge className={`text-xs px-3 py-1 rounded-full capitalize ${getStatusColor(order.status)}`}>
+                          {order.status}
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="border rounded-lg divide-y">
+                          {order.order_items.map((item) => (
+                            <motion.div
+                              key={item.id}
+                              className="flex items-center p-4 gap-4"
+                              whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
+                            >
+                              <div className="relative w-16 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
+                                {item.product?.image_url ? (
+                                  <motion.img
+                                    src={item.product.image_url}
+                                    alt={item.product.name || 'Product'}
+                                    className="w-full h-full object-cover"
+                                    whileHover={{ scale: 1.1 }}
+                                    transition={{ duration: 0.3 }}
+                                  />
+                                ) : (
+                                  <Package className="w-8 h-8 absolute inset-0 m-auto text-muted-foreground" />
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium">
+                                  {item.product?.name || 'Product'}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  Quantity: {item.quantity} × ₹{item.unit_price.toFixed(2)}
+                                </p>
+                              </div>
+                              <p className="font-medium">
+                                ₹{(item.unit_price * item.quantity).toFixed(2)}
+                              </p>
+                            </motion.div>
+                          ))}
+                        </div>
+                        <div className="flex flex-col gap-2 items-end">
+                          <div className="text-right">
+                            <p className="text-sm text-muted-foreground">Shipping Address</p>
+                            <p className="font-medium">
+                              {typeof order.shipping_address === 'string' 
+                                ? order.shipping_address 
+                                : JSON.stringify(order.shipping_address)}
+                            </p>
+                          </div>
+                          <motion.div 
+                            className="text-right"
+                            whileHover={{ scale: 1.05 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <p className="text-sm text-muted-foreground">Total Amount</p>
+                            <p className="text-lg font-medium">
+                              ₹{roundUpTotal(order.total_amount)}
+                            </p>
+                          </motion.div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Total Amount</p>
-                        <p className="text-lg font-medium">
-                          ₹{order.total_amount.toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

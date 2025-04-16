@@ -1,4 +1,6 @@
+
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -8,6 +10,7 @@ import { User, Save, Edit2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import { Lock } from "lucide-react";
+import { pageVariants, itemVariants, buttonVariants, cardVariants } from "@/lib/animations";
 
 interface UserProfile {
   id: string;
@@ -29,6 +32,12 @@ export default function Profile() {
     phone: '',
     address: '',
     email: user?.email || '',
+  });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwords, setPasswords] = useState({
+    current: '',
+    new: '',
+    confirm: ''
   });
 
   useEffect(() => {
@@ -119,15 +128,6 @@ export default function Profile() {
     }
   };
 
-  if (!user) return null;
-
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [passwords, setPasswords] = useState({
-    current: '',
-    new: '',
-    confirm: ''
-  });
-
   const handlePasswordChange = async () => {
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -169,95 +169,120 @@ export default function Profile() {
     }
   };
 
+  if (!user) return null;
+
   return (
-    <div className="container-custom py-12">
+    <motion.div 
+      className="container-custom py-12"
+      variants={pageVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+    >
       <div className="max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+        <motion.div 
+          className="flex justify-between items-center mb-8"
+          variants={itemVariants}
+        >
           <h1 className="text-3xl font-bold">My Profile</h1>
-          <Button
-            variant="outline"
-            onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-          >
-            {isEditing ? (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
-              </>
-            ) : (
-              <>
-                <Edit2 className="h-4 w-4 mr-2" />
-                Edit Profile
-              </>
-            )}
-          </Button>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Profile Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
-              <Input
-                value={user.email}
-                disabled
-                className="bg-muted"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Full Name</label>
-              <Input
-                value={profile.full_name}
-                onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                disabled={!isEditing}
-                placeholder="Enter your full name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Phone Number</label>
-              <Input
-                value={profile.phone}
-                onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                disabled={!isEditing}
-                placeholder="Enter your phone number"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Address</label>
-              <Input
-                value={profile.address}
-                onChange={(e) => setProfile({ ...profile, address: e.target.value })}
-                disabled={!isEditing}
-                placeholder="Enter your address"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Member Since</label>
-              <Input
-                value={new Date(user.created_at).toLocaleDateString()}
-                disabled
-                className="bg-muted"
-              />
-            </div>
-
+          <motion.div whileHover="hover" whileTap="tap" variants={buttonVariants}>
             <Button
-              variant="destructive"
-              className="w-full"
-              onClick={() => signOut()}
+              variant="outline"
+              onClick={() => isEditing ? handleSave() : setIsEditing(true)}
             >
-              Sign Out
+              {isEditing ? (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </>
+              ) : (
+                <>
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </>
+              )}
             </Button>
-          </CardContent>
-        </Card>
-        <div className="space-y-6">
+          </motion.div>
+        </motion.div>
+
+        <motion.div variants={cardVariants}>
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Profile Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <motion.div className="space-y-2" variants={itemVariants}>
+                <label className="text-sm font-medium">Email</label>
+                <Input
+                  value={user.email}
+                  disabled
+                  className="bg-muted"
+                />
+              </motion.div>
+
+              <motion.div className="space-y-2" variants={itemVariants}>
+                <label className="text-sm font-medium">Full Name</label>
+                <Input
+                  value={profile.full_name}
+                  onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                  disabled={!isEditing}
+                  placeholder="Enter your full name"
+                  className="transition-all duration-300 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </motion.div>
+
+              <motion.div className="space-y-2" variants={itemVariants}>
+                <label className="text-sm font-medium">Phone Number</label>
+                <Input
+                  value={profile.phone}
+                  onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                  disabled={!isEditing}
+                  placeholder="Enter your phone number"
+                  className="transition-all duration-300 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </motion.div>
+
+              <motion.div className="space-y-2" variants={itemVariants}>
+                <label className="text-sm font-medium">Address</label>
+                <Input
+                  value={profile.address}
+                  onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+                  disabled={!isEditing}
+                  placeholder="Enter your address"
+                  className="transition-all duration-300 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </motion.div>
+
+              <motion.div className="space-y-2" variants={itemVariants}>
+                <label className="text-sm font-medium">Member Since</label>
+                <Input
+                  value={new Date(user.created_at).toLocaleDateString()}
+                  disabled
+                  className="bg-muted"
+                />
+              </motion.div>
+
+              <motion.div 
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                variants={itemVariants}
+              >
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  onClick={() => signOut()}
+                >
+                  Sign Out
+                </Button>
+              </motion.div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={cardVariants} className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -267,59 +292,77 @@ export default function Profile() {
             </CardHeader>
             <CardContent className="space-y-4">
               {!isChangingPassword ? (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => setIsChangingPassword(true)}
-                >
-                  <Lock className="mr-2 h-4 w-4" />
-                  Change Password
-                </Button>
+                <motion.div whileHover="hover" whileTap="tap" variants={buttonVariants}>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setIsChangingPassword(true)}
+                  >
+                    <Lock className="mr-2 h-4 w-4" />
+                    Change Password
+                  </Button>
+                </motion.div>
               ) : (
                 <>
-                  <div className="space-y-2">
+                  <motion.div className="space-y-2" variants={itemVariants}>
                     <label className="text-sm font-medium">New Password</label>
                     <Input
                       type="password"
                       value={passwords.new}
                       onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
                       placeholder="Enter new password"
+                      className="transition-all duration-300 focus:border-primary focus:ring-2 focus:ring-primary/20"
                     />
-                  </div>
-                  <div className="space-y-2">
+                  </motion.div>
+                  <motion.div className="space-y-2" variants={itemVariants}>
                     <label className="text-sm font-medium">Confirm New Password</label>
                     <Input
                       type="password"
                       value={passwords.confirm}
                       onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
                       placeholder="Confirm new password"
+                      className="transition-all duration-300 focus:border-primary focus:ring-2 focus:ring-primary/20"
                     />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="default"
+                  </motion.div>
+                  <motion.div className="flex gap-2" variants={itemVariants}>
+                    <motion.div
                       className="flex-1"
-                      onClick={handlePasswordChange}
+                      whileHover="hover"
+                      whileTap="tap"
+                      variants={buttonVariants}
                     >
-                      Update Password
-                    </Button>
-                    <Button
-                      variant="outline"
+                      <Button
+                        variant="default"
+                        className="w-full"
+                        onClick={handlePasswordChange}
+                      >
+                        Update Password
+                      </Button>
+                    </motion.div>
+                    <motion.div
                       className="flex-1"
-                      onClick={() => {
-                        setIsChangingPassword(false);
-                        setPasswords({ current: '', new: '', confirm: '' });
-                      }}
+                      whileHover="hover"
+                      whileTap="tap"
+                      variants={buttonVariants}
                     >
-                      Cancel
-                    </Button>
-                  </div>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => {
+                          setIsChangingPassword(false);
+                          setPasswords({ current: '', new: '', confirm: '' });
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </motion.div>
+                  </motion.div>
                 </>
               )}
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
