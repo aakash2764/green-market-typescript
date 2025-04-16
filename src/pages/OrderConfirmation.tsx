@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/dialog";
 import { Check, Copy, Truck, Calendar, ShoppingBag } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { motion } from "framer-motion";
+import { pageVariants } from "@/lib/animations";
 
 const OrderConfirmation = () => {
   const location = useLocation();
@@ -34,29 +36,14 @@ const OrderConfirmation = () => {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    // Get order information from location state or generate example data
+    // Get order information from location state or redirect
     if (location.state?.order) {
       setOrder(location.state.order);
     } else {
-      // Generate a random order ID if not provided (for demonstration)
-      const randomId = Math.random().toString(36).substring(2, 10).toUpperCase();
-      
-      // Example order data
-      setOrder({
-        id: randomId,
-        total: 124.95,
-        items: 3,
-        date: new Date().toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        })
-      });
-      
-      // Show dialog for demo mode
-      setShowDialog(true);
+      // If navigated directly without order data, redirect to home
+      navigate('/');
     }
-  }, [location]);
+  }, [location, navigate]);
 
   const copyOrderId = () => {
     if (order) {
@@ -71,14 +58,6 @@ const OrderConfirmation = () => {
     }
   };
 
-  // Handle navigation for demo dialog
-  const handleDialogAction = (action: 'continue' | 'return') => {
-    setShowDialog(false);
-    if (action === 'return') {
-      navigate('/products');
-    }
-  };
-
   if (!order) {
     return (
       <div className="flex items-center justify-center min-h-[70vh]">
@@ -88,35 +67,13 @@ const OrderConfirmation = () => {
   }
 
   return (
-    <div className="container-custom py-12 px-4 sm:px-6">
-      {/* Demo Mode Dialog */}
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Demo Mode</DialogTitle>
-            <DialogDescription>
-              You're viewing a demo of the order confirmation page with example data.
-              In a real application, this page would display actual order details.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between">
-            <Button 
-              variant="secondary" 
-              onClick={() => handleDialogAction('return')}
-              className="order-2 sm:order-1"
-            >
-              Return to Products
-            </Button>
-            <Button 
-              onClick={() => handleDialogAction('continue')}
-              className="order-1 sm:order-2"
-            >
-              Continue with Demo
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
+    <motion.div 
+      className="container-custom py-12 px-4 sm:px-6"
+      variants={pageVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+    >
       {/* Success Message */}
       <div className="max-w-3xl mx-auto mb-10 text-center">
         <div className="mb-4 flex justify-center">
@@ -131,7 +88,7 @@ const OrderConfirmation = () => {
       </div>
 
       {/* Order Summary Card */}
-      <Card className="max-w-3xl mx-auto gradient-card">
+      <Card className="max-w-3xl mx-auto">
         <CardHeader className="text-center border-b">
           <CardTitle className="text-2xl">Order Summary</CardTitle>
           <CardDescription>Order details for your reference</CardDescription>
@@ -149,7 +106,6 @@ const OrderConfirmation = () => {
                 variant="outline" 
                 size="sm" 
                 onClick={copyOrderId}
-                className="hover-lift"
               >
                 {copied ? <Check className="h-4 w-4 mr-1" /> : <Copy className="h-4 w-4 mr-1" />}
                 {copied ? "Copied" : "Copy ID"}
@@ -187,7 +143,7 @@ const OrderConfirmation = () => {
           {/* Order Total Section */}
           <div className="flex justify-between items-center pt-4 border-t">
             <span className="font-semibold text-lg">Total Paid</span>
-            <span className="font-bold text-xl text-primary">${order.total.toFixed(2)}</span>
+            <span className="font-bold text-xl text-primary">₹{order.total.toFixed(2)}</span>
           </div>
         </CardContent>
         
@@ -195,19 +151,19 @@ const OrderConfirmation = () => {
           <Button 
             variant="outline" 
             onClick={() => navigate('/products')}
-            className="w-full sm:w-auto order-2 sm:order-1 hover-lift"
+            className="w-full sm:w-auto order-2 sm:order-1"
           >
             Continue Shopping
           </Button>
           <Button 
-            onClick={() => navigate('/orders')}
-            className="w-full sm:w-auto order-1 sm:order-2 hover-lift"
+            onClick={() => navigate('/profile')}
+            className="w-full sm:w-auto order-1 sm:order-2"
           >
-            View All Orders
+            View My Account
           </Button>
         </CardFooter>
       </Card>
-    </div>
+    </motion.div>
   );
 };
 

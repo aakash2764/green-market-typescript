@@ -1,113 +1,21 @@
 
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
-import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/lib/supabase";
-import { toast } from "@/hooks/use-toast";
-import { OrderConfirmationModal } from "@/components/order/OrderConfirmationModal";
 import { motion } from "framer-motion";
 import { pageVariants } from "@/lib/animations";
+import { Button } from "@/components/ui/button";
+import { ShoppingCart } from "lucide-react";
 
-// Newly created components
+// Components
 import { EmptyCartView } from "@/components/cart/EmptyCartView";
 import { CartItemList } from "@/components/cart/CartItemList";
-import { OrderSummary } from "@/components/cart/OrderSummary";
 
 export default function Cart() {
-  const { cartItems, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
-  const { user } = useAuth();
+  const { cartItems, cartTotal, updateQuantity, removeFromCart } = useCart();
   const navigate = useNavigate();
-  const [shippingInfo, setShippingInfo] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [confirmedOrder, setConfirmedOrder] = useState<{
-    id: string;
-    total: number;
-    items: number;
-  } | null>(null);
 
-  const handleCheckout = async () => {
-    setIsProcessing(true);
-    setCheckoutError(null);
-
-    try {
-      if (!user) {
-        navigate('/login', { state: { from: '/cart' } });
-        return;
-      }
-
-      // Create order
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user.id,
-          status: 'confirmed',
-          total_amount: cartTotal,
-          shipping_address: shippingInfo
-        })
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      // Create order items and update product stock
-      const orderItems = [];
-      for (const item of cartItems) {
-        const { data: orderItemData, error: orderItemError } = await supabase
-          .from('order_items')
-          .insert({
-            order_id: orderData.id,
-            product_id: item.id,
-            quantity: item.quantity,
-            unit_price: item.products.price
-          })
-          .select()
-          .single();
-
-        if (orderItemError) throw orderItemError;
-        orderItems.push(orderItemData);
-
-        // Update product stock
-        const { error: stockError } = await supabase.rpc(
-          'decrement_stock',
-          { row_id: item.id, amount: item.quantity }
-        );
-
-        if (stockError) throw stockError;
-      }
-
-      // Set confirmed order for modal
-      setConfirmedOrder({
-        id: orderData.id,
-        total: cartTotal,
-        items: cartItems.reduce((acc, item) => acc + item.quantity, 0)
-      });
-
-      // Show confirmation modal
-      setShowConfirmation(true);
-
-      // Clear cart
-      clearCart();
-
-      // Set success
-      toast({
-        title: "Order Placed Successfully",
-        description: "Your order has been confirmed.",
-      });
-
-    } catch (error) {
-      console.error('Checkout error:', error);
-      setCheckoutError('Failed to process your order. Please try again.');
-      toast({
-        title: "Error",
-        description: "Failed to process your order. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleCheckout = () => {
+    navigate('/checkout');
   };
 
   return (
@@ -135,23 +43,37 @@ export default function Cart() {
             removeFromCart={removeFromCart}
           />
           
-          <OrderSummary 
-            cartTotal={cartTotal}
-            isProcessing={isProcessing}
-            checkoutError={checkoutError}
-            shippingInfo={shippingInfo}
-            setShippingInfo={setShippingInfo}
-            handleCheckout={handleCheckout}
-          />
+          <div className="lg:col-span-1 space-y-4">
+            <div className="bg-card rounded-lg border p-6">
+              <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+              
+              <div className="space-y-2 mb-6">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>₹{cartTotal.toFixed(2)}</span>
+                </div>
+                
+                <div className="flex justify-between font-medium pt-2 text-lg">
+                  <span>Total</span>
+                  <span>₹{cartTotal.toFixed(2)}</span>
+                </div>
+              </div>
+              
+              <Button 
+                className="w-full"
+                onClick={handleCheckout}
+                disabled={cartItems.length === 0}
+              >
+                Proceed to Checkout
+              </Button>
+            </div>
+            
+            <Button variant="outline" onClick={() => navigate('/products')} className="w-full">
+              Continue Shopping
+            </Button>
+          </div>
         </div>
       )}
-
-      {/* Order confirmation modal */}
-      <OrderConfirmationModal 
-        isOpen={showConfirmation}
-        onClose={() => setShowConfirmation(false)}
-        orderDetails={confirmedOrder}
-      />
     </motion.div>
   );
 }
