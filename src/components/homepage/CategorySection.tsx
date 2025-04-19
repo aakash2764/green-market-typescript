@@ -16,7 +16,7 @@ const categories = [
   {
     name: "Kitchen",
     image: "https://images.unsplash.com/photo-1556911220-bff31c812dba?q=80&w=500",
-    link: "/products?category=kitchen",
+    link: "/products?category=Kitchen",
     description: "Sustainable kitchenware for everyday cooking",
     icon: Utensils,
     items: ["Bamboo utensils", "Reusable containers", "Eco-friendly cookware"]
@@ -24,7 +24,7 @@ const categories = [
   {
     name: "Electronics",
     image: "https://images.unsplash.com/photo-1526738549149-8e07eca6c147?q=80&w=500",
-    link: "/products?category=electronics",
+    link: "/products?category=Electronics",
     description: "Eco-friendly gadgets and accessories",
     icon: Smartphone,
     items: ["Solar chargers", "Energy-efficient devices", "Recyclable accessories"]
@@ -32,7 +32,7 @@ const categories = [
   {
     name: "Stationery",
     image: "https://media.istockphoto.com/id/1298288303/photo/table-with-various-colorful-stationery.jpg?s=612x612&w=0&k=20&c=uPhbYaIFwt_3g0QYehBLvRSHO0iqpSrXHNt35EBfOnQ=",
-    link: "/products?category=stationery",
+    link: "/products?category=Stationery",
     description: "Recycled paper products and office supplies",
     icon: Pen,
     items: ["Recycled notebooks", "Biodegradable pens", "Plant-based adhesives"]
@@ -40,7 +40,7 @@ const categories = [
   {
     name: "Bags",
     image: "https://immago.com/wp-content/uploads/2024/12/Eco-garment-bags-with-green-background-SM.jpg",
-    link: "/products?category=bags",
+    link: "/products?category=Bags",
     description: "Reusable and stylish bags for all occasions",
     icon: ShoppingBag,
     items: ["Canvas totes", "Jute grocery bags", "Upcycled backpacks"]
@@ -48,7 +48,7 @@ const categories = [
   {
     name: "Bathroom",
     image: "https://images.unsplash.com/photo-1620626011761-996317b8d101?q=80&w=500",
-    link: "/products?category=bathroom",
+    link: "/products?category=Bathroom",
     description: "Natural bathroom essentials and accessories",
     icon: ShowerHead,
     items: ["Bamboo toothbrushes", "Zero-waste soaps", "Organic cotton towels"]
