@@ -1,8 +1,17 @@
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+# Welcome to your project
 
-Follow these steps:
+## Project Info
 
-```sh
+## How Can I Edit This Code?
+
+There are several ways to edit your application:
+
+### Use Your Preferred IDE
+
+If you want to work locally using your own IDE, you can clone this repository and push changes.
+
+The only requirement is having Node.js & npm installed — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+
 # Step 1: Clone the repository using the project's Git URL.
 git clone <YOUR_GIT_URL>
 
@@ -14,40 +23,42 @@ npm i
 
 # Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
-```
+Edit a File Directly in GitHub
+Navigate to the desired file(s).
 
-**Edit a file directly in GitHub**
+Click the Edit button (pencil icon) at the top right of the file view.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Make your changes and commit them.
 
-**Use GitHub Codespaces**
+Use GitHub Codespaces
+Navigate to the main page of your repository.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Click the Code button (green button) near the top right.
 
-## What technologies are used for this project?
+Select the Codespaces tab.
 
+Click New codespace to launch a new Codespace environment.
+
+Edit files directly within the Codespace and commit/push your changes once done.
+
+What Technologies Are Used?
 This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Vite
 
-## How can I deploy this project?
+TypeScript
 
-Simply open [Lovable](https://lovable.dev/projects/69ae7480-2a36-443d-810e-9fef29e61e88) and click on Share -> Publish.
+React
 
-## Can I connect a custom domain to my Lovable project?
+shadcn-ui
 
-Yes it is!
+Tailwind CSS
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+How Can I Deploy This Project?
+Instructions for deployment depend on your hosting provider. Popular options include:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Vercel
+
+Netlify
+
+Render
